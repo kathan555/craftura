@@ -6,6 +6,7 @@ export async function GET() {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // Run dashboard aggregates concurrently to reduce admin page latency.
   const [totalOrders, totalInquiries, totalProducts, totalCategories,
     pendingOrders, recentOrders, recentInquiries, ordersByStatus] = await Promise.all([
     prisma.order.count(),
@@ -33,3 +34,4 @@ export async function GET() {
     pendingOrders, recentOrders, recentInquiries, ordersByStatus,
   })
 }
+// Returns admin dashboard metrics and recent records.

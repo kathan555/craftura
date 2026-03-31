@@ -12,3 +12,4 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   })
   return NextResponse.json(inquiry)
 }
+// Marks a specific inquiry read/unread for admin users.

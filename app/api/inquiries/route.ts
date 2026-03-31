@@ -5,6 +5,7 @@ export async function GET() {
   const inquiries = await prisma.inquiry.findMany({ orderBy: { createdAt: 'desc' } })
   return NextResponse.json(inquiries)
 }
+// Returns inquiries in reverse chronological order.
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,6 +14,7 @@ export async function POST(req: NextRequest) {
     if (!name || !email || !phone || !message) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+    // Normalize incoming fields before persistence for consistent formatting.
     const inquiry = await prisma.inquiry.create({
       data: {
         name: name.trim(),
@@ -27,3 +29,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create inquiry' }, { status: 500 })
   }
 }
+// Creates a new inquiry after validating required fields.

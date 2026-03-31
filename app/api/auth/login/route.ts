@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 })
     }
 
+    // Normalize incoming email before lookup to avoid case/whitespace mismatches.
     const admin = await prisma.admin.findUnique({ where: { email: email.toLowerCase().trim() } })
     if (!admin) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
       admin: { id: admin.id, name: admin.name, email: admin.email },
     })
 
+    // Set secure auth cookie attributes for server-side admin session handling.
     response.cookies.set('admin_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -40,3 +42,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Login failed' }, { status: 500 })
   }
 }
+// Authenticates admin credentials and issues a signed cookie token.

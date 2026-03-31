@@ -4,6 +4,7 @@ import { generateOrderNumber } from '@/lib/auth'
 
 export async function GET(req: NextRequest) {
   try {
+    // Load nested order item/product data in one query for admin order listing.
     const orders = await prisma.order.findMany({
       include: { items: { include: { product: { include: { images: { where: { isPrimary: true } } } } } } },
       orderBy: { createdAt: 'desc' },
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 })
   }
 }
+// Returns orders with related line-item and product info.
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,6 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 })
     }
 
+    // Create the order with nested order items in a single transaction.
     const order = await prisma.order.create({
       data: {
         orderNumber: generateOrderNumber(),
@@ -54,3 +57,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
   }
 }
+// Creates a customer order after required-field and item validation.

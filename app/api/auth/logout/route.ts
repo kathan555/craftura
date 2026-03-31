@@ -5,3 +5,4 @@ export async function POST() {
   response.cookies.delete('admin_token')
   return response
 }
+// Clears the admin auth cookie and returns a logout confirmation.
