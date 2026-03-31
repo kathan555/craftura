@@ -248,13 +248,19 @@ Private — All rights reserved, Craftura Fine Furniture
 
 ## ▶️ To Quick Run
 
-unzip craftura.zip && cd craftura
-npm install
-PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 npx prisma generate
-PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 npx prisma db push
-npm run db:seed
-npm run dev
+```bash
+- unzip craftura.zip && cd craftura
+- npm install
+- PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 npx prisma generate
+- PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 npx prisma db push
+- npm run db:seed
+- npm run dev
 
+#One Clean Reinstall of All Pinned Versions
+- npm install next@14 react@18 react-dom@18 prisma@5 @prisma/client@5 tailwindcss@3 autoprefixer@10 postcss@8
+
+- npx ts-node --compiler-options "{\"module\":\"CommonJS\"}" prisma/seed.ts
+```
 ___
 
 Admin: admin@craftura.com / admin123
