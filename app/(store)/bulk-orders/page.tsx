@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import Image from 'next/image'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import { whatsappBulkOrderLink } from '@/lib/whatsapp'
 
 export default function BulkOrdersPage() {
   const [form, setForm]             = useState({ name:'', email:'', phone:'', address:'', company:'', notes:'' })
@@ -45,7 +47,15 @@ export default function BulkOrdersPage() {
             <p className="text-xl leading-relaxed mb-8" style={{ color: 'var(--text-secondary)' }}>
               We supply hotels, corporate offices, educational institutions, and retailers with premium furniture.
             </p>
-            <a href="#quote-form" className="btn-wood">Request a Quote</a>
+            <div className="flex flex-wrap gap-3">
+              <a href="#quote-form" className="btn-wood">Request a Quote</a>
+              <WhatsAppButton
+                href={whatsappBulkOrderLink()}
+                label="Chat on WhatsApp"
+                size="lg"
+                variant="outline"
+              />
+            </div>
           </div>
         </div>
       </div>

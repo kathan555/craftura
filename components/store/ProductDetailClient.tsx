@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import WhatsAppButton from '@/components/ui/WhatsAppButton'
+import { whatsappProductLink } from '@/lib/whatsapp'
 
 interface Product {
   id: string; name: string; slug: string; description: string
@@ -218,6 +220,29 @@ export default function ProductDetailClient({ product, related }: { product: Pro
                   : 'Place Inquiry'
                 }
               </button>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px" style={{ background: 'var(--border-base)' }}/>
+                <span className="text-xs" style={{ color: 'var(--text-faint)' }}>or</span>
+                <div className="flex-1 h-px" style={{ background: 'var(--border-base)' }}/>
+              </div>
+
+              {/* WhatsApp CTA */}
+              <WhatsAppButton
+                href={whatsappProductLink({
+                  productName: product.name,
+                  material: product.material,
+                  price: product.price,
+                  quantity,
+                  orderType,
+                })}
+                label="Enquire on WhatsApp"
+                size="lg"
+                variant="solid"
+                className="w-full justify-center"
+              />
+
               <p className="text-center text-xs" style={{ color: 'var(--text-faint)' }}>
                 No payment required · Our team will contact you to confirm
               </p>

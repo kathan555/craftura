@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateOrderNumber } from '@/lib/auth'
+import {
+  sendEmail,
+  adminNewOrderEmail,
+  customerOrderConfirmationEmail,
+} from '@/lib/email'
 
 export async function GET(req: NextRequest) {
   try {
-    // Load nested order item/product data in one query for admin order listing.
     const orders = await prisma.order.findMany({
       include: { items: { include: { product: { include: { images: { where: { isPrimary: true } } } } } } },
       orderBy: { createdAt: 'desc' },
@@ -14,7 +18,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 })
   }
 }
-// Returns orders with related line-item and product info.
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,12 +27,11 @@ export async function POST(req: NextRequest) {
     if (!name || !email || !phone || !address) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
-
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 })
     }
 
-    // Create the order with nested order items in a single transaction.
+    // Create order with product details included for emails
     const order = await prisma.order.create({
       data: {
         orderNumber: generateOrderNumber(),
@@ -48,13 +50,58 @@ export async function POST(req: NextRequest) {
           })),
         },
       },
-      include: { items: true },
+      include: {
+        items: {
+          include: { product: { select: { name: true } } },
+        },
+      },
     })
 
-    return NextResponse.json({ success: true, orderNumber: order.orderNumber }, { status: 201 })
+    // Build shared item list for emails
+    const emailItems = order.items.map(item => ({
+      productName: item.product.name,
+      quantity: item.quantity,
+    }))
+
+    // Send emails — fire both in parallel, never block the response
+    const adminEmail = process.env.ADMIN_EMAIL || ''
+
+    Promise.all([
+      // 1. Notify admin
+      adminEmail
+        ? sendEmail({
+            to: adminEmail,
+            ...adminNewOrderEmail({
+              orderNumber: order.orderNumber,
+              customerName: order.customerName,
+              email: order.email,
+              phone: order.phone,
+              address: order.address,
+              orderType: order.orderType,
+              notes: order.notes,
+              items: emailItems,
+            }),
+          })
+        : Promise.resolve(),
+
+      // 2. Confirm to customer
+      sendEmail({
+        to: order.email,
+        ...customerOrderConfirmationEmail({
+          orderNumber: order.orderNumber,
+          customerName: order.customerName,
+          orderType: order.orderType,
+          items: emailItems,
+        }),
+      }),
+    ]).catch(err => console.error('[Email] Parallel send error:', err))
+
+    return NextResponse.json(
+      { success: true, orderNumber: order.orderNumber },
+      { status: 201 }
+    )
   } catch (err) {
     console.error('Order creation error:', err)
     return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
   }
 }
-// Creates a customer order after required-field and item validation.
