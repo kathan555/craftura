@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { ThemeProvider } from '../components/ui/ThemeProvider'
 
 export const metadata: Metadata = {
   title: {
@@ -7,17 +8,21 @@ export const metadata: Metadata = {
     default: 'Craftura Furniture – Handcrafted Premium Furniture',
   },
   description: 'Premium handcrafted furniture for homes, hotels and offices. B2B bulk orders and custom manufacturing. Located in Ahmedabad, Gujarat.',
-  keywords: ['furniture', 'handcrafted', 'custom furniture', 'bulk furniture', 'B2B furniture', 'Ahmedabad', 'Gujarat'],
-  openGraph: {
-    type: 'website',
-    siteName: 'Craftura Furniture',
-  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="grain-overlay">{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){try{var s=localStorage.getItem('craftura-theme');var p=window.matchMedia('(prefers-color-scheme: dark)').matches;if(s==='dark'||(!s&&p)){document.documentElement.classList.add('dark');}}catch(e){}})();`
+        }} />
+      </head>
+      <body className="grain-overlay">
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

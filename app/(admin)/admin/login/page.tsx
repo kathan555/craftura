@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
               <label className="block text-xs font-medium text-stone-300 mb-2">Email Address</label>
               <input
                 type="email" required
-                className="w-full px-4 py-3 bg-charcoal-700 border border-white/10 rounded-lg text-white placeholder-stone-500 text-sm focus:outline-none focus:border-wood-500 focus:ring-2 focus:ring-wood-500/20 transition-all"
+                className="admin-input"
                 placeholder="admin@craftura.com"
                 value={form.email}
                 onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
@@ -64,7 +64,7 @@ export default function AdminLoginPage() {
               <label className="block text-xs font-medium text-stone-300 mb-2">Password</label>
               <input
                 type="password" required
-                className="w-full px-4 py-3 bg-charcoal-700 border border-white/10 rounded-lg text-white placeholder-stone-500 text-sm focus:outline-none focus:border-wood-500 focus:ring-2 focus:ring-wood-500/20 transition-all"
+                className="admin-input"
                 placeholder="••••••••"
                 value={form.password}
                 onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
