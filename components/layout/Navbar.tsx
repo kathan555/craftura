@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import ThemeToggle from '../../components/ui/ThemeToggle'
+import ThemeToggle from '@/components/ui/ThemeToggle'
+import CartIcon from '@/components/ui/CartIcon'
 
 const navLinks = [
   { href: '/',            label: 'Home' },
@@ -14,8 +15,8 @@ const navLinks = [
 ]
 
 export default function Navbar() {
-  const [scrolled, setScrolled]   = useState(false)
-  const [menuOpen, setMenuOpen]   = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const pathname = usePathname()
   const isHome = pathname === '/'
 
@@ -72,21 +73,26 @@ export default function Navbar() {
                     color: active
                       ? (solid ? 'var(--accent-text)' : 'var(--color-wood-200)')
                       : (solid ? 'var(--text-secondary)' : 'rgba(255,255,255,0.8)'),
-                  }}
-                >{link.label}</Link>
+                  }}>
+                  {link.label}
+                </Link>
               )
             })}
           </div>
 
-          {/* Right side: toggle + CTA + hamburger */}
-          <div className="flex items-center gap-3">
-            {/* Theme toggle — always visible on desktop */}
+          {/* Right: theme toggle + cart + CTA + hamburger */}
+          <div className="flex items-center gap-2">
+            {/* Theme toggle */}
             <div className="hidden sm:flex items-center"
               style={{ color: solid ? 'var(--text-muted)' : 'rgba(255,255,255,0.7)' }}>
               <ThemeToggle />
             </div>
 
-            <Link href="/products"
+            {/* Cart icon with badge */}
+            <CartIcon scrolled={scrolled} isHome={isHome} />
+
+            {/* Get Quote CTA */}
+            <Link href="/inquiry-cart"
               className="hidden sm:inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-md transition-all"
               style={solid
                 ? { background: 'var(--text-primary)', color: 'var(--bg-base)' }
@@ -94,10 +100,12 @@ export default function Navbar() {
               }>
               Get Quote
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5"
+                  strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </Link>
 
+            {/* Hamburger */}
             <button
               className="md:hidden p-2 rounded-md transition-colors"
               style={{ color: solid ? 'var(--text-primary)' : 'white' }}
@@ -122,20 +130,26 @@ export default function Navbar() {
                 style={{
                   color: pathname === link.href ? 'var(--accent-text)' : 'var(--text-secondary)',
                   background: pathname === link.href ? 'var(--accent-soft)' : 'transparent',
-                }}
-              >{link.label}</Link>
+                }}>
+                {link.label}
+              </Link>
             ))}
-            {/* Theme toggle in mobile menu */}
+            {/* Inquiry cart link */}
+            <Link href="/inquiry-cart"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-colors"
+              style={{ color: 'var(--accent-text)', background: 'var(--accent-soft)' }}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+              Inquiry List
+            </Link>
+            {/* Theme toggle */}
             <div className="px-4 py-3 flex items-center justify-between"
               style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}>
               <span className="text-sm">Dark Mode</span>
               <ThemeToggle />
-            </div>
-            <div className="pt-2 px-4">
-              <Link href="/products" onClick={() => setMenuOpen(false)}
-                className="btn-primary w-full text-sm">
-                Get a Quote
-              </Link>
             </div>
           </div>
         )}

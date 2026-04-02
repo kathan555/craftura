@@ -242,7 +242,7 @@ vercel
 
 ## 📄 License
 
-Private — All rights reserved, Craftura Fine Furniture
+Private — All rights reserved, With Kathan Patel.
 
 ---
 

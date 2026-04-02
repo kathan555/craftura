@@ -2,8 +2,12 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import type { Metadata } from 'next'
+import ProductCard from '@/components/store/ProductCard'
 
-export const metadata: Metadata = { title: 'Products' }
+export const metadata: Metadata = {
+  title: 'Products',
+  description: 'Browse our full collection of handcrafted furniture — sofas, beds, dining tables, office furniture and more. Available for individual and bulk orders.',
+}
 
 async function getProducts(categorySlug?: string, search?: string) {
   const [products, categories] = await Promise.all([
@@ -64,12 +68,10 @@ export default async function ProductsPage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
               </svg>
-              <input
-                type="search" name="search"
+              <input type="search" name="search"
                 placeholder="Search products..."
                 defaultValue={searchParams.search}
-                className="form-input pl-10 h-11 text-sm"
-              />
+                className="form-input pl-10 h-11 text-sm"/>
             </div>
           </form>
 
@@ -79,17 +81,14 @@ export default async function ProductsPage({
               style={!searchParams.category
                 ? { background: 'var(--text-primary)', color: 'var(--bg-base)', borderColor: 'var(--text-primary)' }
                 : { background: 'var(--bg-surface)', color: 'var(--text-secondary)', borderColor: 'var(--border-base)' }
-              }
-            >All</Link>
+              }>All</Link>
             {categories.map(cat => (
-              <Link key={cat.id}
-                href={`/products?category=${cat.slug}`}
+              <Link key={cat.id} href={`/products?category=${cat.slug}`}
                 className="px-4 py-2 rounded-full text-sm font-medium transition-all border"
                 style={searchParams.category === cat.slug
                   ? { background: 'var(--accent)', color: '#fff', borderColor: 'var(--accent)' }
                   : { background: 'var(--bg-surface)', color: 'var(--text-secondary)', borderColor: 'var(--border-base)' }
-                }
-              >{cat.name}</Link>
+                }>{cat.name}</Link>
             ))}
           </div>
         </div>
@@ -104,55 +103,28 @@ export default async function ProductsPage({
         {products.length === 0 ? (
           <div className="text-center py-24">
             <div className="text-5xl mb-4">🪑</div>
-            <h3 className="font-display text-2xl mb-2" style={{ color: 'var(--text-primary)' }}>No products found</h3>
-            <p className="mb-6" style={{ color: 'var(--text-muted)' }}>Try a different search or browse all categories</p>
+            <h3 className="font-display text-2xl mb-2" style={{ color: 'var(--text-primary)' }}>
+              No products found
+            </h3>
+            <p className="mb-6" style={{ color: 'var(--text-muted)' }}>
+              Try a different search or browse all categories
+            </p>
             <Link href="/products" className="btn-primary">View All Products</Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map(product => (
-              <Link key={product.id} href={`/products/${product.slug}`}
-                className="group rounded-2xl overflow-hidden card-hover border"
-                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-base)' }}>
-                <div className="relative aspect-[4/3] img-zoom">
-                  <Image
-                    src={product.images[0]?.url || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600'}
-                    alt={product.name} fill className="object-cover"
-                  />
-                  {product.featured && (
-                    <span className="absolute top-3 right-3 text-white text-xs font-medium px-2.5 py-1 rounded-full"
-                      style={{ background: 'var(--accent)' }}>
-                      Featured
-                    </span>
-                  )}
-                </div>
-                <div className="p-4">
-                  <h3 className="font-display text-lg leading-tight mb-1 transition-colors"
-                    style={{ color: 'var(--text-primary)' }}>
-                    {product.name}
-                  </h3>
-                  {product.material && (
-                    <p className="text-xs tracking-wider uppercase mb-2" style={{ color: 'var(--text-faint)' }}>
-                      {product.material}
-                    </p>
-                  )}
-                  <p className="text-sm line-clamp-2 mb-3" style={{ color: 'var(--text-muted)' }}>
-                    {product.description}
-                  </p>
-                  <div className="flex items-center justify-between pt-3"
-                    style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                    {product.price
-                      ? <span className="font-display text-base" style={{ color: 'var(--accent-text)' }}>
-                          ₹{product.price.toLocaleString('en-IN')}
-                        </span>
-                      : <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Price on request</span>
-                    }
-                    {product.moq && (
-                      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>MOQ: {product.moq}</span>
-                    )}
-                  </div>
-                </div>
-              </Link>
+              <ProductCard key={product.id} product={{
+                id: product.id,
+                name: product.name,
+                slug: product.slug,
+                description: product.description,
+                material: product.material,
+                price: product.price,
+                moq: product.moq,
+                featured: product.featured,
+                imageUrl: product.images[0]?.url || '',
+              }} />
             ))}
           </div>
         )}

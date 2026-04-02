@@ -1,8 +1,14 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { buildMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = { title: 'About Us' }
+export const metadata: Metadata = buildMetadata({
+  title: 'About Us – Three Decades of Craftsmanship',
+  description: 'Learn about Craftura Fine Furniture — founded in 1994 in Ahmedabad. 120+ skilled artisans, 15,000 sqft facility, 200+ B2B clients across India.',
+  path: '/about',
+  keywords: ['furniture manufacturer Ahmedabad', 'handcrafted furniture India', 'furniture company Gujarat', 'teak wood furniture maker'],
+})
 
 export default function AboutPage() {
   return (

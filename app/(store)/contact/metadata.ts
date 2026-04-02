@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { buildMetadata } from '@/lib/seo'
-import ContactClient from '@/components/store/ContactClient'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Contact Us',
@@ -8,7 +7,3 @@ export const metadata: Metadata = buildMetadata({
   path: '/contact',
   keywords: ['furniture showroom Ahmedabad', 'contact furniture manufacturer', 'furniture inquiry Gujarat'],
 })
-
-export default function ContactPage() {
-  return <ContactClient />
-}

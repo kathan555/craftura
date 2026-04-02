@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import WhatsAppButton from '@/components/ui/WhatsAppButton'
 import { whatsappProductLink } from '@/lib/whatsapp'
+import AddToCartButton from '@/components/ui/AddToCartButton'
 
 interface Product {
   id: string; name: string; slug: string; description: string
@@ -145,6 +146,20 @@ export default function ProductDetailClient({ product, related }: { product: Pro
                 ))}
               </div>
             </div>
+
+            {/* Add to inquiry list */}
+            <AddToCartButton
+              product={{
+                productId: product.id,
+                productName: product.name,
+                productSlug: product.slug,
+                imageUrl: product.images[0]?.url || '',
+                material: product.material,
+                price: product.price,
+              }}
+              variant="outline"
+              className="w-full mb-6"
+            />
 
             {/* Order type toggle */}
             <div className="flex rounded-lg border p-1 mb-6"

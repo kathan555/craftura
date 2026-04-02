@@ -1,6 +1,19 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
+import type { Metadata } from 'next'
+import { localBusinessJsonLd } from '@/lib/seo'
+
+export const metadata: Metadata = {
+  title: 'Craftura Fine Furniture – Handcrafted Premium Furniture Since 1994',
+  description: 'Premium handcrafted furniture for homes, hotels and offices in India. Custom B2B bulk orders, teak, oak and sheesham wood furniture. Based in Ahmedabad, Gujarat.',
+  keywords: ['handcrafted furniture India', 'teak furniture Ahmedabad', 'bulk furniture supplier Gujarat', 'custom furniture manufacturer India', 'hotel furniture supplier'],
+  openGraph: {
+    title: 'Craftura Fine Furniture – Handcrafted Since 1994',
+    description: 'Premium handcrafted furniture for homes, hotels and offices. B2B bulk orders welcome.',
+    images: [{ url: '/og-default.jpg', width: 1200, height: 630 }],
+  },
+}
 
 async function getHomeData() {
   const [featuredProducts, categories] = await Promise.all([
@@ -17,16 +30,22 @@ async function getHomeData() {
 
 export default async function HomePage() {
   const { featuredProducts, categories } = await getHomeData()
+  const jsonLd = localBusinessJsonLd()
 
   return (
     <div style={{ background: 'var(--bg-base)' }}>
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       {/* ── HERO ── */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0" style={{ background: 'var(--bg-surface)' }}>
           <Image
             src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1920&q=80"
-            alt="Craftura showroom" fill className="object-cover opacity-40" priority
+            alt="Craftura premium furniture showroom" fill className="object-cover opacity-40" priority
           />
           <div className="absolute inset-0"
             style={{ background: 'linear-gradient(to right, rgba(12,10,9,0.85) 0%, rgba(12,10,9,0.5) 60%, transparent 100%)' }}/>
@@ -65,9 +84,9 @@ export default async function HomePage() {
             <div className="flex gap-10 mt-16 pt-10 animate-fade-in stagger-4"
               style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
               {[
-                { value: '30+',  label: 'Years Experience' },
+                { value: '30+',   label: 'Years Experience' },
                 { value: '5000+', label: 'Pieces Crafted' },
-                { value: '200+', label: 'B2B Clients' },
+                { value: '200+',  label: 'B2B Clients' },
               ].map(s => (
                 <div key={s.label}>
                   <div className="font-display text-3xl font-semibold text-white">{s.value}</div>
@@ -80,7 +99,6 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
           style={{ color: 'rgba(255,255,255,0.35)' }}>
           <span className="text-xs tracking-widest uppercase">Scroll</span>
@@ -106,7 +124,7 @@ export default async function HomePage() {
               style={{ aspectRatio: i === 0 ? '16/9' : '4/3' }}>
               <Image
                 src={cat.imageUrl || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600'}
-                alt={cat.name} fill className="object-cover"
+                alt={`${cat.name} furniture`} fill className="object-cover"
               />
               <div className="absolute inset-0"
                 style={{ background: 'linear-gradient(to top, rgba(12,10,9,0.8) 0%, rgba(12,10,9,0.15) 60%, transparent 100%)' }}/>
@@ -160,7 +178,6 @@ export default async function HomePage() {
             </svg>
           </Link>
         </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {featuredProducts.map(product => (
             <Link key={product.id} href={`/products/${product.slug}`}
@@ -169,7 +186,7 @@ export default async function HomePage() {
               <div className="relative aspect-[4/3] img-zoom">
                 <Image
                   src={product.images[0]?.url || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600'}
-                  alt={product.name} fill className="object-cover"
+                  alt={`${product.name} - ${product.category.name}`} fill className="object-cover"
                 />
                 <div className="absolute top-3 left-3 flex gap-2">
                   {product.category && (
@@ -187,7 +204,7 @@ export default async function HomePage() {
                 </div>
               </div>
               <div className="p-5">
-                <h3 className="font-display text-xl mb-1 transition-colors group-hover:opacity-80"
+                <h3 className="font-display text-xl mb-1 transition-opacity group-hover:opacity-75"
                   style={{ color: 'var(--text-primary)' }}>
                   {product.name}
                 </h3>
@@ -227,7 +244,7 @@ export default async function HomePage() {
             <div className="relative">
               <div className="relative aspect-[4/5] rounded-2xl overflow-hidden">
                 <Image src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800"
-                  alt="Craftura workshop" fill className="object-cover"/>
+                  alt="Craftura furniture workshop Ahmedabad" fill className="object-cover"/>
               </div>
               <div className="absolute -bottom-5 -right-5 w-40 h-40 rounded-2xl -z-10"
                 style={{ background: 'var(--accent)' }}/>
@@ -236,10 +253,9 @@ export default async function HomePage() {
               <div className="absolute top-6 -right-6 text-white p-5 rounded-xl shadow-xl"
                 style={{ background: 'var(--accent)' }}>
                 <div className="font-display text-4xl font-bold">30+</div>
-                <div className="text-xs tracking-wider uppercase mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>Years</div>
+                <div className="text-xs tracking-wider uppercase mt-1" style={{ opacity: 0.85 }}>Years</div>
               </div>
             </div>
-
             <div>
               <p className="text-xs tracking-[0.3em] uppercase font-medium mb-5" style={{ color: 'var(--accent-text)' }}>
                 Our Story
@@ -294,15 +310,12 @@ export default async function HomePage() {
             </div>
             <div className="relative grid lg:grid-cols-2 gap-10 items-center">
               <div>
-                <p className="text-xs tracking-[0.3em] uppercase font-medium mb-4 text-white opacity-80">
-                  For Businesses
-                </p>
+                <p className="text-xs tracking-[0.3em] uppercase font-medium mb-4 text-white opacity-80">For Businesses</p>
                 <h2 className="font-display text-4xl sm:text-5xl text-white font-semibold mb-5 leading-tight">
                   Bulk Orders &<br/>Custom Projects
                 </h2>
                 <p className="text-lg leading-relaxed mb-8" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  Supplying furniture to hotels, resorts, corporate offices and educational institutions.
-                  Competitive pricing with guaranteed quality and timely delivery.
+                  Supplying furniture to hotels, resorts, corporate offices and educational institutions across India.
                 </p>
                 <Link href="/bulk-orders"
                   className="inline-flex items-center gap-2 font-semibold px-7 py-3.5 rounded-lg transition-colors"
