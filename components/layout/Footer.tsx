@@ -1,6 +1,13 @@
 import Link from 'next/link'
 
-export default function Footer() {
+interface NavSettings {
+  nav_show_gallery:     boolean
+  nav_show_bulk_orders: boolean
+  nav_show_about:       boolean
+  nav_show_contact:     boolean
+}
+
+export default function Footer({ navSettings }: { navSettings: NavSettings }) {
   return (
     <footer style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border-subtle)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,13 +55,13 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3">
               {[
-                { href: '/',            label: 'Home' },
-                { href: '/products',    label: 'Products' },
-                { href: '/gallery',     label: 'Gallery' },
-                { href: '/bulk-orders', label: 'Bulk Orders' },
-                { href: '/about',       label: 'About Us' },
-                { href: '/contact',     label: 'Contact' },
-              ].map(link => (
+                { href: '/',            label: 'Home',        show: true },
+                { href: '/products',    label: 'Products',    show: true },
+                { href: '/gallery',     label: 'Gallery',     show: navSettings.nav_show_gallery },
+                { href: '/bulk-orders', label: 'Bulk Orders', show: navSettings.nav_show_bulk_orders },
+                { href: '/about',       label: 'About Us',    show: navSettings.nav_show_about },
+                { href: '/contact',     label: 'Contact',     show: navSettings.nav_show_contact },
+              ].filter(l => l.show).map(link => (
                 <li key={link.href}>
                   <Link href={link.href}
                     className="text-sm animated-underline transition-colors"

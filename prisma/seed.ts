@@ -150,6 +150,11 @@ async function main() {
     { key: 'email', value: 'info@craftura.com' },
     { key: 'address', value: 'Plot 42, GIDC Industrial Estate, Ahmedabad, Gujarat 380025' },
     { key: 'whatsapp', value: '+919876543210' },
+    // Navigation visibility — all enabled by default
+    { key: 'nav_show_gallery',     value: 'true' },
+    { key: 'nav_show_bulk_orders', value: 'true' },
+    { key: 'nav_show_about',       value: 'true' },
+    { key: 'nav_show_contact',     value: 'true' },
   ]
 
   for (const content of siteContents) {
