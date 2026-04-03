@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-const statuses = ['PENDING', 'CONFIRMED', 'IN_PRODUCTION', 'DELIVERED']
+const statuses = ['PENDING', 'CONFIRMED', 'IN_PRODUCTION', 'DELIVERED', 'CANCELLED']
 
 export default function OrderStatusUpdater({
   orderId, currentStatus
@@ -33,7 +33,8 @@ export default function OrderStatusUpdater({
           status === 'PENDING' ? 'bg-amber-50 border-amber-200 text-amber-800' :
           status === 'CONFIRMED' ? 'bg-blue-50 border-blue-200 text-blue-800' :
           status === 'IN_PRODUCTION' ? 'bg-indigo-50 border-indigo-200 text-indigo-800' :
-          'bg-green-50 border-green-200 text-green-800'
+          status === 'DELIVERED' ? 'bg-green-50 border-green-200 text-green-800' :
+          'bg-red-50 border-red-200 text-red-700'
         }`}
       >
         {statuses.map(s => (

@@ -36,8 +36,9 @@ export default function Navbar({ navSettings }: Props) {
   const solid    = scrolled || !isHome
 
   // Parent "Order Details" auto-hides when ALL its children are hidden.
-  // To add Order Tracking later: just add || navSettings.nav_show_order_tracking
-  const showOrderDetails = navSettings.nav_show_bulk_orders
+  // Order Tracking is always visible (not admin-togglable) so parent always shows
+  // if bulk_orders OR order tracking exists.
+  const showOrderDetails = navSettings.nav_show_bulk_orders || true  // track-order always active
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30)
@@ -65,7 +66,7 @@ export default function Navbar({ navSettings }: Props) {
   // Derived: is any "Order Details" child active?
   const orderChildActive =
     pathname.startsWith('/bulk-orders') ||
-    pathname.startsWith('/order-tracking')
+    pathname.startsWith('/track-order')
 
   // Shared link style helper
   const linkStyle = (active: boolean) => ({
@@ -185,22 +186,26 @@ export default function Navbar({ navSettings }: Props) {
                       </Link>
                     )}
 
-                    {/* Order Tracking — future, shown as coming soon */}
-                    <div
-                      className="flex items-center gap-3 px-4 py-3 text-sm cursor-not-allowed"
-                      style={{ color: 'var(--text-faint)' }}
-                      title="Coming soon"
+                    {/* Order Tracking — live */}
+                    <Link href="/track-order"
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors"
+                      style={{
+                        color:      pathname === '/track-order' ? 'var(--accent-text)' : 'var(--text-secondary)',
+                        background: pathname === '/track-order' ? 'var(--accent-soft)'  : 'transparent',
+                      }}
+                      onMouseEnter={e => {
+                        if (pathname !== '/track-order') e.currentTarget.style.background = 'var(--bg-subtle)'
+                      }}
+                      onMouseLeave={e => {
+                        if (pathname !== '/track-order') e.currentTarget.style.background = 'transparent'
+                      }}
                     >
                       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
                       </svg>
-                      <span>Order Tracking</span>
-                      <span className="ml-auto text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded"
-                        style={{ background: 'var(--bg-muted)', color: 'var(--text-faint)' }}>
-                        Soon
-                      </span>
-                    </div>
+                      Track Order
+                    </Link>
                   </div>
                 )}
               </div>
@@ -308,15 +313,9 @@ export default function Navbar({ navSettings }: Props) {
                       <MobileLink href="/bulk-orders" label="Bulk Orders"
                         active={pathname === '/bulk-orders'} onClose={() => setMenuOpen(false)} indent />
                     )}
-                    {/* Order Tracking — coming soon */}
-                    <div className="flex items-center justify-between px-4 py-2.5 text-sm rounded-md"
-                      style={{ color: 'var(--text-faint)' }}>
-                      <span>Order Tracking</span>
-                      <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded"
-                        style={{ background: 'var(--bg-muted)', color: 'var(--text-faint)' }}>
-                        Soon
-                      </span>
-                    </div>
+                    {/* Order Tracking — live */}
+                    <MobileLink href="/track-order" label="Track Order"
+                      active={pathname === '/track-order'} onClose={() => setMenuOpen(false)} indent />
                   </div>
                 )}
               </div>

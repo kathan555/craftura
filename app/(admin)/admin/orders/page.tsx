@@ -8,6 +8,7 @@ function statusBadge(status: string) {
   const map: Record<string, string> = {
     PENDING: 'status-pending', CONFIRMED: 'status-confirmed',
     IN_PRODUCTION: 'status-in_production', DELIVERED: 'status-delivered',
+    CANCELLED: 'status-cancelled',
   }
   return `status-badge ${map[status] || 'status-pending'}`
 }

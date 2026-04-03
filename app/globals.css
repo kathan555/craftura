@@ -145,31 +145,6 @@ body {
   margin: 0 auto 1.5rem;
 }
 
-/* Admin login page inputs — always dark since admin panel is always dark */
-.admin-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background: #1c1712;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 0.5rem;
-  color: #f0ebe4;
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  color-scheme: dark;
-}
-.admin-input:focus {
-  border-color: var(--color-wood-500);
-  box-shadow: 0 0 0 2px rgba(196,120,58,0.2);
-}
-.admin-input::placeholder { color: #6b5f56; }
-.admin-input:-webkit-autofill,
-.admin-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #1c1712 inset !important;
-  -webkit-text-fill-color: #f0ebe4 !important;
-}
-
 /* Staggered animation */
 .stagger-1 { animation-delay: 0.1s; }
 .stagger-2 { animation-delay: 0.2s; }
@@ -199,6 +174,7 @@ body {
 .status-confirmed    { background:#dbeafe; color:#1e40af; }
 .status-in_production{ background:#e0e7ff; color:#3730a3; }
 .status-delivered    { background:#d1fae5; color:#065f46; }
+.status-cancelled    { background:#fee2e2; color:#991b1b; }
 
 /* Form inputs — theme-aware */
 .form-input {
@@ -299,4 +275,100 @@ html.dark .theme-toggle::after { transform: translateX(18px); }
   display: flex; align-items: center; justify-content: center;
   padding: 1rem;
   backdrop-filter: blur(4px);
+}
+
+/* ── DARK MODE FORM FIXES ─────────────────────────────── */
+
+/* Tell the browser which color scheme we're using so native
+   controls (scrollbars, spinners, date pickers) render correctly */
+html       { color-scheme: light; }
+html.dark  { color-scheme: dark; }
+
+/* Fix Chrome/Edge autofill injecting a white background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-surface) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Select elements — custom arrow, consistent across themes */
+select.form-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+html.dark select.form-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239c8f84' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+/* Select options dropdown — dark mode background */
+select.form-input option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* Number input — hide spinner arrows (they look odd in dark) */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  opacity: 0.4;
+}
+
+/* Search input — hide the default X button in some browsers */
+input[type='search']::-webkit-search-cancel-button {
+  filter: invert(0.5);
+}
+
+/* Checkbox — consistent accent color */
+input[type='checkbox'].form-checkbox {
+  accent-color: var(--accent);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+/* Fix for any admin input that uses Tailwind classes instead of .form-input */
+html.dark input:not([type='checkbox']):not([type='radio']):not([type='file']),
+html.dark textarea,
+html.dark select {
+  color-scheme: dark;
+}
+
+/* Admin login page inputs — always dark since admin panel is always dark */
+.admin-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #1c1712;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.5rem;
+  color: #f0ebe4;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  color-scheme: dark;
+}
+.admin-input:focus {
+  border-color: var(--color-wood-500);
+  box-shadow: 0 0 0 2px rgba(196,120,58,0.2);
+}
+.admin-input::placeholder { color: #6b5f56; }
+.admin-input:-webkit-autofill,
+.admin-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #1c1712 inset !important;
+  -webkit-text-fill-color: #f0ebe4 !important;
 }

@@ -95,11 +95,12 @@ export default function InquiryCartPage() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/products" className="btn-wood">Continue Browsing</Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
+            <Link href={`/track-order?q=${orderNumber}`} className="btn-primary">Track This Order</Link>
+            <Link href="/products" className="btn-outline">Continue Browsing</Link>
             <WhatsAppButton
               href={whatsappGeneralLink(`Hi! I just submitted inquiry ${orderNumber} on your website. Looking forward to hearing from you!`)}
-              label="Also message on WhatsApp"
+              label="Also WhatsApp us"
               variant="outline"
               size="md"
             />
