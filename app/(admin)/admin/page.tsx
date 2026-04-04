@@ -140,10 +140,11 @@ export default async function AdminDashboard() {
         <h2 className="font-semibold text-charcoal-700 mb-4">Quick Actions</h2>
         <div className="flex flex-wrap gap-3">
           {[
-            { href: '/admin/products/new', label: 'Add Product', icon: '+ Product' },
-            { href: '/admin/categories', label: 'Manage Categories', icon: '+ Category' },
-            { href: '/admin/orders', label: 'View All Orders', icon: 'Orders' },
-            { href: '/admin/inquiries', label: 'Read Inquiries', icon: 'Inquiries' },
+            { href: '/admin/analytics',   label: '📊 Analytics & Export' },
+            { href: '/admin/products/new', label: '+ Add Product' },
+            { href: '/admin/categories',  label: 'Manage Categories' },
+            { href: '/admin/orders',      label: 'View All Orders' },
+            { href: '/admin/inquiries',   label: 'Read Inquiries' },
           ].map(a => (
             <Link key={a.href} href={a.href}
               className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-charcoal-700 text-sm font-medium rounded-lg transition-colors">
