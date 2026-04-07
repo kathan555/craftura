@@ -153,6 +153,7 @@ async function main() {
     // Navigation visibility — all enabled by default
     { key: 'nav_show_gallery',     value: 'true' },
     { key: 'nav_show_bulk_orders', value: 'true' },
+    { key: 'nav_show_blog',        value: 'true' },
     { key: 'nav_show_about',       value: 'true' },
     { key: 'nav_show_contact',     value: 'true' },
   ]
@@ -163,6 +164,138 @@ async function main() {
       update: {},
       create: content,
     })
+  }
+
+
+  // ── Testimonials (moved from hardcoded homepage) ────────────
+  const testimonials = [
+    {
+      name: 'Rajesh Patel',
+      role: 'GM, The Heritage Grand Hotel',
+      location: 'Ahmedabad',
+      quote: 'Craftura supplied all the furniture for our 80-room boutique hotel. The quality is exceptional and delivery was on time. Highly recommend for bulk orders.',
+      rating: 5, featured: true, order: 0,
+    },
+    {
+      name: 'Priya Mehta',
+      role: 'Facilities Manager, TechCorp India',
+      location: 'Ahmedabad',
+      quote: 'We have been ordering office furniture for our 5 branches from Craftura for 6 years. Consistent quality, great service, and the customization options are unmatched.',
+      rating: 5, featured: true, order: 1,
+    },
+    {
+      name: 'Anita Sharma',
+      role: 'Homeowner',
+      location: 'Surat',
+      quote: 'The bedroom set I ordered is absolutely stunning. The craftsmanship is visible in every joint and finish. Worth every rupee.',
+      rating: 5, featured: true, order: 2,
+    },
+  ]
+
+  for (const t of testimonials) {
+    const existing = await prisma.testimonial.findFirst({ where: { name: t.name, role: t.role } })
+    if (!existing) await prisma.testimonial.create({ data: t })
+  }
+
+  // ── Blog posts (sample craft stories) ────────────────────────
+  const blogPosts = [
+    {
+      title: 'How We Source Our Teak: A Journey from Forest to Furniture',
+      slug: 'how-we-source-our-teak',
+      excerpt: 'Teak is the backbone of premium Indian furniture. At Craftura, we only source from certified sustainable plantations. Here is exactly how that process works.',
+      content: `# How We Source Our Teak
+
+At Craftura, teak is not just a material — it is a commitment. Every beam, plank, and joint that leaves our workshop in Ahmedabad tells a story that begins hundreds of kilometres away in the sustainably managed forests of South India.
+
+## Why Teak?
+
+Teak (Tectona grandis) has been the gold standard for fine furniture for over 400 years. Its natural oils make it resistant to moisture, insects, and warping. A well-crafted teak piece does not just last a lifetime — it lasts generations.
+
+## Our Sourcing Process
+
+**Step 1: Certified Plantation Partners**
+
+We work exclusively with Forest Stewardship Council (FSC) certified plantations in Karnataka and Kerala. These plantations operate on 25-year growth cycles, ensuring that for every tree harvested, three more are planted.
+
+**Step 2: On-Site Inspection**
+
+Our master craftsman Ramesh Patel personally visits our suppliers twice a year. He inspects the grain, density, and moisture content of each batch before a single log is purchased.
+
+**Step 3: Seasoning**
+
+Raw teak must be seasoned — slowly dried — before it can be worked. We air-dry our timber for a minimum of 18 months in our open yards. Kiln-drying shortcuts this process but compromises the wood's stability. We never cut corners here.
+
+**Step 4: Milling**
+
+Once seasoned, the timber is milled in our own facility. This gives us complete control over plank dimensions and quality, rather than accepting whatever a third-party mill provides.
+
+## The Result
+
+A piece of Craftura furniture made from our teak will not crack, warp, or lose its finish under normal Indian conditions — including the humidity of monsoon season. We stand behind this with our 10-year structural warranty.
+
+*Next time you run your hand across a Craftura surface, you are touching wood that was a living tree not so long ago — and was handled with respect every step of the way.*`,
+      coverImage: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=1200',
+      category: 'Craft & Materials',
+      tags: 'teak,sourcing,sustainability,materials',
+      published: true,
+      readTime: 5,
+      publishedAt: new Date('2024-09-15'),
+    },
+    {
+      title: '5 Questions to Ask Before Buying a Sofa',
+      slug: '5-questions-before-buying-sofa',
+      excerpt: 'A sofa is a 10-year commitment. Most buyers focus on colour and price. Here are the five questions that actually determine whether you will love it a decade from now.',
+      content: `# 5 Questions to Ask Before Buying a Sofa
+
+A sofa is one of the most important purchases in a home. Most people spend more time choosing a phone than a sofa — despite the fact that the sofa will be in their living room for the next decade. Here are the five questions we always encourage our customers to ask.
+
+## 1. What Is the Frame Made Of?
+
+This is the single most important question. A sofa frame made from engineered wood or MDF will sag and creak within 2-3 years. Look for solid hardwood frames — sal, teak, or sheesham. At Craftura, all our sofa frames are solid wood, mortise-and-tenon jointed. Ask to see the joinery before you buy.
+
+## 2. What Is the Spring and Cushion Construction?
+
+**Springs:** Eight-way hand-tied springs are the gold standard. Sinuous (S-shaped) springs are acceptable. Avoid sofas with no springs at all — they are essentially just foam on a frame.
+
+**Foam density:** The cushion foam density should be at least 32 kg/m³ for the seat. Lower density foam will compress and never recover within a few years.
+
+## 3. Does It Fit Your Space — Really?
+
+Measure twice. Then measure again. Consider:
+- The sofa dimensions with cushions at full depth
+- The pathway into your home (many sofas cannot navigate narrow hallways)
+- The visual weight — a large sectional in a small room makes both look wrong
+
+Our design team offers free space planning consultations. Use them.
+
+## 4. How Is the Fabric or Leather Graded?
+
+Fabric is graded A through F based on its rub count — how many times it can be rubbed before it shows wear. Grade A starts at 15,000 rubs. For a family home, you want Grade C or above (30,000+ rubs). Full-grain leather will last 15-20 years. Bonded leather (leather scraps glued to fabric) will start peeling in 3-5 years.
+
+## 5. What Is the Warranty — and What Does It Actually Cover?
+
+A confident manufacturer backs their product. Our sofas come with:
+- 10-year warranty on the frame
+- 3-year warranty on springs
+- 1-year warranty on fabric/leather (fair wear excluded)
+
+Ask for the warranty in writing, and read what is and is not covered.
+
+---
+
+*The right sofa, chosen with care, will be in your home long enough that your children will remember it. Take your time. We are happy to answer every question.*`,
+      coverImage: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200',
+      category: 'Buying Guide',
+      tags: 'sofa,buying guide,tips,living room',
+      published: true,
+      readTime: 6,
+      publishedAt: new Date('2024-10-03'),
+    },
+  ]
+
+  for (const post of blogPosts) {
+    const existing = await prisma.blogPost.findUnique({ where: { slug: post.slug } })
+    if (!existing) await prisma.blogPost.create({ data: post })
   }
 
   console.log('✅ Database seeded successfully')

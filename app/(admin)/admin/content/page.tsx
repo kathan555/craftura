@@ -10,13 +10,14 @@ const ALL_KEYS = [
   'about_title', 'about_text',
   'phone', 'email', 'address', 'whatsapp',
   'nav_show_gallery', 'nav_show_bulk_orders',
-  'nav_show_about', 'nav_show_contact',
+  'nav_show_blog', 'nav_show_about', 'nav_show_contact',
 ]
 
 // Defaults for keys that may not exist in DB yet
 const DEFAULTS: Record<string, string> = {
   nav_show_gallery:     'true',
   nav_show_bulk_orders: 'true',
+  nav_show_blog:        'true',
   nav_show_about:       'true',
   nav_show_contact:     'true',
 }

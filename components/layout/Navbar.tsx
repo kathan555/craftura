@@ -8,6 +8,7 @@ import CartIcon from '@/components/ui/CartIcon'
 interface NavSettings {
   nav_show_gallery:     boolean
   nav_show_bulk_orders: boolean
+  nav_show_blog:        boolean
   nav_show_about:       boolean
   nav_show_contact:     boolean
 }
@@ -128,6 +129,15 @@ export default function Navbar({ navSettings }: Props) {
                 className="px-4 py-2 rounded-md text-sm font-medium animated-underline transition-colors"
                 style={linkStyle(pathname === '/gallery')}>
                 Gallery
+              </Link>
+            )}
+
+            {/* Blog — toggleable */}
+            {navSettings.nav_show_blog && (
+              <Link href="/blog"
+                className="px-4 py-2 rounded-md text-sm font-medium animated-underline transition-colors"
+                style={linkStyle(pathname === '/blog' || pathname.startsWith('/blog/'))}>
+                Blog
               </Link>
             )}
 
@@ -279,6 +289,12 @@ export default function Navbar({ navSettings }: Props) {
             {navSettings.nav_show_gallery && (
               <MobileLink href="/gallery" label="Gallery"
                 active={pathname === '/gallery'} onClose={() => setMenuOpen(false)} />
+            )}
+
+            {/* Blog */}
+            {navSettings.nav_show_blog && (
+              <MobileLink href="/blog" label="Blog"
+                active={pathname === '/blog' || pathname.startsWith('/blog/')} onClose={() => setMenuOpen(false)} />
             )}
 
             {/* Order Details — accordion, auto-hides when ALL children are hidden */}

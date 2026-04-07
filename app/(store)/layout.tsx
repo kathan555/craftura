@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 const NAV_DEFAULTS: Record<string, string> = {
   nav_show_gallery:     'true',
   nav_show_bulk_orders: 'true',
+  nav_show_blog:        'true',
   nav_show_about:       'true',
   nav_show_contact:     'true',
 }

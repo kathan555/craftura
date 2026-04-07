@@ -37,6 +37,13 @@ const NAV_TABS = [
     parent: 'Order Details',  // belongs to this parent dropdown
   },
   {
+    key: 'nav_show_blog',
+    label: 'Blog',
+    description: 'Shows / hides the Blog page link in navigation',
+    icon: '✍️',
+    parent: null,
+  },
+  {
     key: 'nav_show_about',
     label: 'About Us',
     description: 'Shows / hides the About Us page link in navigation',

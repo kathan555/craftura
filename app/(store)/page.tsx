@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 }
 
 async function getHomeData() {
-  const [featuredProducts, categories] = await Promise.all([
+  const [featuredProducts, categories, testimonials, blogPosts] = await Promise.all([
     prisma.product.findMany({
       where: { featured: true },
       include: { images: { where: { isPrimary: true } }, category: true },
@@ -24,12 +24,23 @@ async function getHomeData() {
       orderBy: { createdAt: 'desc' },
     }),
     prisma.category.findMany({ take: 6, orderBy: { name: 'asc' } }),
+    prisma.testimonial.findMany({
+      where: { featured: true },
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      take: 3,
+    }),
+    prisma.blogPost.findMany({
+      where: { published: true },
+      orderBy: { publishedAt: 'desc' },
+      take: 3,
+      select: { title: true, slug: true, excerpt: true, coverImage: true, category: true, readTime: true, publishedAt: true },
+    }),
   ])
-  return { featuredProducts, categories }
+  return { featuredProducts, categories, testimonials, blogPosts }
 }
 
 export default async function HomePage() {
-  const { featuredProducts, categories } = await getHomeData()
+  const { featuredProducts, categories, testimonials, blogPosts } = await getHomeData()
   const jsonLd = localBusinessJsonLd()
 
   return (
@@ -346,48 +357,101 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ── */}
-      <section className="pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
-          <p className="text-xs tracking-[0.3em] uppercase font-medium mb-3" style={{ color: 'var(--accent-text)' }}>
-            Testimonials
-          </p>
-          <h2 className="font-display text-4xl sm:text-5xl" style={{ color: 'var(--text-primary)' }}>
-            What Our Clients Say
-          </h2>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { quote:"Craftura supplied all the furniture for our 80-room boutique hotel. Exceptional quality and on-time delivery.", name:"Rajesh Patel", role:"GM, The Heritage Grand Hotel", location:"Ahmedabad" },
-            { quote:"We've been ordering office furniture for our 5 branches from Craftura for 6 years. Consistent quality and great service.", name:"Priya Mehta", role:"Facilities Manager, TechCorp India", location:"Ahmedabad" },
-            { quote:"The bedroom set I ordered is absolutely stunning. The craftsmanship is visible in every joint and finish.", name:"Anita Sharma", role:"Homeowner", location:"Surat" },
-          ].map((t, i) => (
-            <div key={i} className="rounded-2xl p-7 border card-hover"
-              style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-base)' }}>
-              <div className="flex gap-1 mb-5">
-                {Array(5).fill(0).map((_,j) => (
-                  <svg key={j} width="16" height="16" viewBox="0 0 16 16" fill="var(--accent)">
-                    <path d="M8 1l1.8 3.6L14 5.3l-3 2.9.7 4.1L8 10.4l-3.7 1.9.7-4.1-3-2.9 4.2-.7z"/>
-                  </svg>
-                ))}
+      {/* ── TESTIMONIALS — from database ── */}
+      {testimonials.length > 0 && (
+        <section className="pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-xs tracking-[0.3em] uppercase font-medium mb-3" style={{ color: 'var(--accent-text)' }}>
+              Testimonials
+            </p>
+            <h2 className="font-display text-4xl sm:text-5xl" style={{ color: 'var(--text-primary)' }}>
+              What Our Clients Say
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map(t => (
+              <div key={t.id} className="rounded-2xl p-7 border card-hover"
+                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-base)' }}>
+                <div className="flex gap-1 mb-5">
+                  {Array(t.rating).fill(0).map((_,j) => (
+                    <svg key={j} width="16" height="16" viewBox="0 0 16 16" fill="var(--accent)">
+                      <path d="M8 1l1.8 3.6L14 5.3l-3 2.9.7 4.1L8 10.4l-3.7 1.9.7-4.1-3-2.9 4.2-.7z"/>
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-sm leading-relaxed mb-6 italic" style={{ color: 'var(--text-secondary)' }}>
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold"
+                    style={{ background: 'var(--accent-soft)', color: 'var(--accent-text)' }}>
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{t.name}</div>
+                    <div className="text-xs" style={{ color: 'var(--text-faint)' }}>{t.role}{t.location ? ` · ${t.location}` : ''}</div>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm leading-relaxed mb-6 italic" style={{ color: 'var(--text-secondary)' }}>
-                &ldquo;{t.quote}&rdquo;
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── BLOG PREVIEW ── */}
+      {blogPosts.length > 0 && (
+        <section className="pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
+            <div>
+              <p className="text-xs tracking-[0.3em] uppercase font-medium mb-3" style={{ color: 'var(--accent-text)' }}>
+                From Our Workshop
               </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold"
-                  style={{ background: 'var(--accent-soft)', color: 'var(--accent-text)' }}>
-                  {t.name[0]}
-                </div>
-                <div>
-                  <div className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{t.name}</div>
-                  <div className="text-xs" style={{ color: 'var(--text-faint)' }}>{t.role} · {t.location}</div>
-                </div>
-              </div>
+              <h2 className="font-display text-4xl sm:text-5xl" style={{ color: 'var(--text-primary)' }}>
+                Craft Stories
+              </h2>
             </div>
-          ))}
-        </div>
-      </section>
+            <Link href="/blog" className="btn-outline text-sm shrink-0 self-start sm:self-auto">
+              All Articles
+              <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
+                <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {blogPosts.map(post => (
+              <Link key={post.slug} href={`/blog/${post.slug}`}
+                className="group rounded-2xl overflow-hidden border card-hover flex flex-col"
+                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-base)' }}>
+                {post.coverImage && (
+                  <div className="relative aspect-[16/9] img-zoom">
+                    <Image src={post.coverImage} alt={post.title} fill className="object-cover"/>
+                  </div>
+                )}
+                <div className="p-5 flex flex-col flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full"
+                      style={{ background: 'var(--accent-soft)', color: 'var(--accent-text)' }}>
+                      {post.category}
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{post.readTime} min read</span>
+                  </div>
+                  <h3 className="font-display text-lg mb-2 flex-1 group-hover:opacity-75 transition-opacity"
+                    style={{ color: 'var(--text-primary)' }}>
+                    {post.title}
+                  </h3>
+                  <p className="text-sm line-clamp-2 mb-4" style={{ color: 'var(--text-muted)' }}>{post.excerpt}</p>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium mt-auto" style={{ color: 'var(--accent-text)' }}>
+                    Read article
+                    <svg width="12" height="12" fill="none" viewBox="0 0 14 14">
+                      <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── FINAL CTA ── */}
       <section className="pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">

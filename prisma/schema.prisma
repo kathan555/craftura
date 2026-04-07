@@ -109,3 +109,33 @@ model GalleryItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  location  String
+  quote     String
+  rating    Int      @default(5)
+  featured  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  coverImage  String?
+  category    String   @default("General")
+  tags        String   @default("")
+  published   Boolean  @default(false)
+  readTime    Int      @default(5)
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  publishedAt DateTime?
+}
