@@ -84,11 +84,15 @@ model Inquiry {
 }
 
 model Admin {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  name         String
+  role         String   @default("admin")       // "superadmin" | "admin"
+  isActive     Boolean  @default(false)         // false until super admin approves
+  isSuperAdmin Boolean  @default(false)         // can manage other admins
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model SiteContent {

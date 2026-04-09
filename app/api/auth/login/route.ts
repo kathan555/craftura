@@ -6,40 +6,45 @@ export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json()
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password required' }, { status: 400 })
+      return NextResponse.json({ error: 'Email and password required.' }, { status: 400 })
     }
 
-    // Normalize incoming email before lookup to avoid case/whitespace mismatches.
     const admin = await prisma.admin.findUnique({ where: { email: email.toLowerCase().trim() } })
     if (!admin) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 })
     }
 
     const valid = await verifyPassword(password, admin.password)
     if (!valid) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 })
+    }
+
+    // Block inactive accounts — pending super admin approval
+    if (!admin.isActive) {
+      return NextResponse.json({
+        error: 'pending_approval',
+        message: 'Your account is pending approval from the super admin. You will be notified once activated.',
+      }, { status: 403 })
     }
 
     const token = generateToken({ adminId: admin.id, email: admin.email })
-
     const response = NextResponse.json({
       success: true,
-      admin: { id: admin.id, name: admin.name, email: admin.email },
+      admin: { id: admin.id, name: admin.name, email: admin.email, isSuperAdmin: admin.isSuperAdmin },
     })
 
-    // Set secure auth cookie attributes for server-side admin session handling.
     response.cookies.set('admin_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 1 day
+      maxAge: 60 * 60 * 12, // 12 hours.
       path: '/',
     })
 
     return response
   } catch (err) {
     console.error(err)
-    return NextResponse.json({ error: 'Login failed' }, { status: 500 })
+    return NextResponse.json({ error: 'Login failed.' }, { status: 500 })
   }
 }
 // Authenticates admin credentials and issues a signed cookie token.

@@ -33,8 +33,10 @@ export async function getAdminSession() {
   if (!payload?.adminId) return null
   const admin = await prisma.admin.findUnique({
     where: { id: payload.adminId },
-    select: { id: true, email: true, name: true },
+    select: { id: true, email: true, name: true, isActive: true, isSuperAdmin: true, role: true },
   })
+  // Block deactivated admins even if token is still valid
+  if (!admin || !admin.isActive) return null
   return admin
 }
 

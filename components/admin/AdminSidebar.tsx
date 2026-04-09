@@ -24,6 +24,10 @@ const navItems = [
     icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>,
   },
   {
+	label: 'Gallery', href: '/admin/gallery',
+    icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>,
+  },
+  {
     label: 'Inquiries', href: '/admin/inquiries',
     icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>,
   },
@@ -41,7 +45,15 @@ const navItems = [
   },
 ]
 
-export default function AdminSidebar({ admin }: { admin: { name: string; email: string } }) {
+// Super-admin-only nav items
+const superAdminItems = [
+  {
+    label: 'Team', href: '/admin/users',
+    icon: <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>,
+  },
+]
+
+export default function AdminSidebar({ admin, isSuperAdmin }: { admin: { name: string; email: string; role?: string }; isSuperAdmin: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -85,12 +97,42 @@ export default function AdminSidebar({ admin }: { admin: { name: string; email: 
             </Link>
           )
         })}
+
+        {/* Super admin only section */}
+        {isSuperAdmin && (
+          <>
+            <div className="px-3 pt-5 pb-1">
+              <p className="text-stone-600 text-[10px] uppercase tracking-widest font-semibold">Super Admin</p>
+            </div>
+            {superAdminItems.map(item => {
+              const isActive = pathname.startsWith(item.href)
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`admin-sidebar-link ${isActive ? 'active' : ''}`}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              )
+            })}
+          </>
+        )}
       </nav>
 
       {/* Footer */}
       <div className="p-3 border-t border-white/5">
         <div className="px-3 py-2 mb-1">
-          <div className="text-white text-sm font-medium truncate">{admin.name}</div>
+          <div className="flex items-center gap-2">
+            <div className="text-white text-sm font-medium truncate">{admin.name}</div>
+            {isSuperAdmin && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0"
+                style={{ background: 'rgba(168,94,46,0.25)', color: '#e0a87a' }}>
+                ⭐ Super
+              </span>
+            )}
+          </div>
           <div className="text-stone-500 text-xs truncate">{admin.email}</div>
         </div>
         <Link href="/" target="_blank" className="admin-sidebar-link text-xs">
