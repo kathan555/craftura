@@ -244,8 +244,11 @@ ADMIN_EMAIL="admin@craftura.com"
 
 ## 10. Recent Changes (newest first)
 
-1. **Inventory module (#11)** — `InventoryItem` + `InventoryTransaction` DB models. Full CRUD with soft delete (reason required). Stock movement transaction log (STOCK_IN/OUT/ADJUSTMENT/RETURN/DAMAGE/TRANSFER). Each txn records unitCost + totalCost for future cost reporting. Summary cards, 4-category tabs, detail panel with txn history. `/admin/inventory` + 3 API routes.
-2. **Admin registration + approval system** — `/admin/register` (public), `/admin/users`
+1. **AdminSidebar grouped accordion** — flat 10-item list replaced with grouped accordion.
+   Groups: Catalogue (Products/Categories/Gallery), Sales & CRM (Orders/Inquiries),
+   Manufacturing (Inventory), Content (Blog/Testimonials/Content & Nav). Standalone items:
+   Dashboard, Analytics. Active child auto-opens parent. Width w-64 → w-56.
+2. **Inventory module (#11)** — `InventoryItem` + `InventoryTransaction` DB models. Full CRUD with soft delete (reason required). Stock movement transaction log (STOCK_IN/OUT/ADJUSTMENT/RETURN/DAMAGE/TRANSFER). Each txn records unitCost + totalCost for future cost reporting. Summary cards, 4-category tabs, detail panel with txn history. `/admin/inventory` + 3 API routes. — `/admin/register` (public), `/admin/users`
    (super admin), `UsersManager.tsx`, `api/auth/register`, `api/admin/users/[id]`.
    Admin layout reads `x-pathname` header from middleware to skip auth on login/register.
 2. **Middleware fixed** — removed `verifyToken` import (crashes Edge Runtime). Now cookie-only

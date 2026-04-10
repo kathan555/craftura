@@ -324,11 +324,19 @@ ContactClient.tsx        'use client'. Contact form — POST /api/inquiries. Sho
 ## components/admin/ — Admin Panel Components
 
 ```
-AdminSidebar.tsx         'use client'. Sidebar navigation. Accepts admin + isSuperAdmin props.
-                         Regular nav items: Dashboard, Analytics, Products, Categories, Orders,
-                         Inquiries, Inventory, Testimonials, Blog, Content & Nav.
-                         "Super Admin" section (Team link) visible only when isSuperAdmin=true.
-                         Role badge (⭐ Super) in footer.
+AdminSidebar.tsx         'use client'. Grouped accordion sidebar. Accepts admin + isSuperAdmin.
+                         Structure:
+                           Standalone: Dashboard, Analytics
+                           Catalogue  (accordion) → Products, Categories, Gallery
+                           Sales & CRM (accordion) → Orders, Inquiries
+                           Manufacturing (accordion) → Inventory
+                           Content (accordion) → Blog, Testimonials, Content & Nav
+                           Super Admin section (isSuperAdmin only) → Team
+                         Accordion behaviour: group headers are toggle buttons (not links).
+                         Active child auto-opens its parent on mount and route change.
+                         Active items: white text + bg-white/10 + wood-400 icon tint.
+                         Width reduced to w-56 (from w-64). All icons extracted to Icon object.
+                         ⭐ badge in footer (no text label — just star icon to save space).
 
 AdminGalleryClient.tsx   'use client'. Gallery management — drag-drop file upload (POST /api/upload
                          then POST /api/gallery), featured star toggle, delete. Image grid preview.
@@ -490,4 +498,4 @@ prisma/seed.ts          Seeds: 1 super admin (admin@craftura.com / admin123, isA
 
 ---
 
-*Last updated: after inventory module — InventoryItem + InventoryTransaction models, 3 API routes, InventoryManager component, /admin/inventory page.*
+*Last updated: after sidebar grouped accordion refactor — Catalogue / Sales & CRM / Manufacturing / Content groups, auto-open active parent, w-56 width.*
