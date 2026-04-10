@@ -93,6 +93,12 @@ model Admin {
   isSuperAdmin Boolean  @default(false)         // can manage other admins
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // Inventory audit relations
+  inventoryCreated     InventoryItem[]        @relation("InventoryCreatedBy")
+  inventoryUpdated     InventoryItem[]        @relation("InventoryUpdatedBy")
+  inventoryDeleted     InventoryItem[]        @relation("InventoryDeletedBy")
+  inventoryTransactions InventoryTransaction[] @relation("TransactionCreatedBy")
 }
 
 model SiteContent {
@@ -142,4 +148,89 @@ model BlogPost {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   publishedAt DateTime?
+}
+
+// ── Inventory Module ──────────────────────────────────────────
+
+model InventoryItem {
+  id               String   @id @default(cuid())
+
+  // Identification
+  name             String
+  sku              String?  @unique        // optional internal code e.g. "WD-TEAK-001"
+  description      String?
+
+  // Category — the four manufacturing inventory types
+  category         String                  // RAW_MATERIAL | WIP | FINISHED_GOOD | MRO
+  subCategory      String?                 // e.g. "Teak Wood" / "Unpainted Items" / "Power Tools"
+
+  // Unit of measurement
+  unit             String   @default("pieces")  // kg, meters, liters, pieces, sheets, rolls
+
+  // Stock levels
+  quantity         Float    @default(0)    // current quantity on hand
+  minQuantity      Float?                  // reorder alert threshold
+  maxQuantity      Float?                  // max storage capacity
+
+  // Cost tracking — essential for manufacturing cost reports
+  unitCost         Float?                  // cost per unit (latest purchase price)
+  totalValue       Float?                  // snapshot: quantity * unitCost (updated on each txn)
+
+  // Supplier (relevant for RAW_MATERIAL and MRO)
+  supplier         String?
+  supplierContact  String?
+
+  // Physical location in factory/warehouse
+  location         String?                 // e.g. "Warehouse A – Rack 3", "Production Floor"
+
+  // Stock status — auto-managed by API
+  status           String   @default("ACTIVE")  // ACTIVE | LOW_STOCK | OUT_OF_STOCK | DISCONTINUED
+
+  // Soft delete — record kept for reporting, never hard deleted
+  isDeleted        Boolean  @default(false)
+  deletedAt        DateTime?
+  deletedById      String?
+  deletedBy        Admin?   @relation("InventoryDeletedBy",  fields: [deletedById],  references: [id])
+  deletionReason   String?
+
+  // Audit trail — who added/last updated
+  createdById      String?
+  createdBy        Admin?   @relation("InventoryCreatedBy",  fields: [createdById],  references: [id])
+  updatedById      String?
+  updatedBy        Admin?   @relation("InventoryUpdatedBy",  fields: [updatedById],  references: [id])
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  transactions     InventoryTransaction[]
+}
+
+model InventoryTransaction {
+  id               String        @id @default(cuid())
+
+  inventoryId      String
+  inventory        InventoryItem @relation(fields: [inventoryId], references: [id])
+
+  // Movement type
+  type             String        // STOCK_IN | STOCK_OUT | ADJUSTMENT | RETURN | DAMAGE | TRANSFER
+
+  // Quantity — always positive; type determines direction
+  quantity         Float
+
+  // Cost at time of transaction — critical for historical cost analysis
+  unitCost         Float?        // cost per unit at this moment
+  totalCost        Float?        // quantity × unitCost
+
+  // Context
+  reason           String?       // "Purchased from supplier", "Used in Sofa batch #12", etc.
+  reference        String?       // PO number, production order, job card number
+
+  // Snapshot of stock after this transaction (for timeline reports)
+  stockAfter       Float?
+
+  // Who performed this action
+  createdById      String?
+  createdBy        Admin?        @relation("TransactionCreatedBy", fields: [createdById], references: [id])
+
+  createdAt        DateTime @default(now())
 }

@@ -85,6 +85,8 @@ super admins → success screen. Super admin approves at `/admin/users` →
 | `GalleryItem` | title, imageUrl, category, featured | |
 | `Testimonial` | name, role, quote, rating, featured, order | Shown on homepage when featured=true |
 | `BlogPost` | title, slug, content, published, readTime, views | publishedAt set on first publish |
+| `InventoryItem` | name, sku, category, quantity, unitCost, totalValue, status, isDeleted | 4 categories: RAW_MATERIAL/WIP/FINISHED_GOOD/MRO. Soft delete only. createdById/updatedById/deletedById audit trail |
+| `InventoryTransaction` | type, quantity, unitCost, totalCost, stockAfter, reason, reference | Every stock movement logged. Types: STOCK_IN/STOCK_OUT/ADJUSTMENT/RETURN/DAMAGE/TRANSFER |
 
 **Order statuses:** `PENDING → CONFIRMED → IN_PRODUCTION → DELIVERED` · also `CANCELLED`
 Customer can self-cancel PENDING only (requires email verification in cancel API).
@@ -179,6 +181,7 @@ No library. Supports orders, inquiries, products with date range filter.
 | `/admin/blog/new` | `BlogEditor` component (markdown, cover upload, publish) |
 | `/admin/blog/[slug]/edit` | Edit existing post |
 | `/admin/content` | CMS text + nav visibility toggles |
+| `/admin/inventory` | 4-tab inventory (Raw/WIP/Finished/MRO). Add/edit/soft-delete items. Stock movement transactions with full history panel |
 | `/admin/users` | **Super admin only.** Approve/deactivate/promote/demote/delete |
 | `/admin/login` | Public. Amber banner for pending_approval state |
 | `/admin/register` | Public. Password strength meter + reason field |
@@ -217,6 +220,10 @@ No library. Supports orders, inquiries, products with date range filter.
 /api/admin/stats         GET   — dashboard summary stats
 /api/admin/users         GET   — super admin only, list all admins
 /api/admin/users/[id]    PATCH/DELETE — actions: approve|deactivate|promote|demote
+
+/api/admin/inventory                   GET (list + summary stats) / POST (create)
+/api/admin/inventory/[id]              GET (item + 50 latest txns) / PATCH (update) / DELETE (soft)
+/api/admin/inventory/[id]/transaction  POST — record stock movement, updates item qty/value/status
 ```
 
 ---
@@ -237,7 +244,8 @@ ADMIN_EMAIL="admin@craftura.com"
 
 ## 10. Recent Changes (newest first)
 
-1. **Admin registration + approval system** — `/admin/register` (public), `/admin/users`
+1. **Inventory module (#11)** — `InventoryItem` + `InventoryTransaction` DB models. Full CRUD with soft delete (reason required). Stock movement transaction log (STOCK_IN/OUT/ADJUSTMENT/RETURN/DAMAGE/TRANSFER). Each txn records unitCost + totalCost for future cost reporting. Summary cards, 4-category tabs, detail panel with txn history. `/admin/inventory` + 3 API routes.
+2. **Admin registration + approval system** — `/admin/register` (public), `/admin/users`
    (super admin), `UsersManager.tsx`, `api/auth/register`, `api/admin/users/[id]`.
    Admin layout reads `x-pathname` header from middleware to skip auth on login/register.
 2. **Middleware fixed** — removed `verifyToken` import (crashes Edge Runtime). Now cookie-only
@@ -267,7 +275,7 @@ ADMIN_EMAIL="admin@craftura.com"
 - [ ] Homepage gallery preview section (gallery exists, not previewed on homepage)
 - [ ] Product comparison tool
 - [ ] Downloadable PDF product catalogue
-- [ ] Inventory / stock management
+- [x] Inventory / stock management ← DONE
 - [ ] B2B account registration + order history portal
 - [ ] Click-to-call floating button (mobile)
 - [ ] Online payment (Razorpay)

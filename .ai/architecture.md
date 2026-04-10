@@ -146,6 +146,10 @@ passthrough `layout.tsx` files to bypass the auth check.
 (admin)/admin/content/page.tsx      Server. Fetches all SiteContent keys (text + nav_show_* flags)
                                     → ContentEditor client component.
 
+(admin)/admin/inventory/page.tsx    Server. Fetches all non-deleted inventory items + computes
+                                    summary stats (total, totalValue, lowStock, outOfStock,
+                                    byCategory counts) → InventoryManager client component.
+
 (admin)/admin/users/page.tsx        Server. Super admin only (redirects if not isSuperAdmin).
                                     Fetches all admins → UsersManager client component.
 ```
@@ -218,6 +222,30 @@ api/track-order/route.ts        GET. Public. Searches by orderNumber (exact) OR 
 api/track-order/cancel/route.ts POST. Public. Requires orderNumber + email to match in DB.
                                 Only PENDING orders can be cancelled. Updates status to CANCELLED.
                                 Emails admin notification on cancel.
+
+── Inventory (admin-only) ────────────────────────────────────────────────────
+
+api/admin/inventory/route.ts                GET. Returns all items (isDeleted=false by default;
+                                            ?deleted=true to include). Also returns summary object:
+                                            { total, totalValue, lowStock, outOfStock, byCategory }.
+                                            POST. Creates InventoryItem. Validates category,
+                                            auto-computes status and totalValue. Logs initial
+                                            STOCK_IN transaction if opening qty > 0.
+
+api/admin/inventory/[id]/route.ts           GET. Returns single item with last 50 transactions
+                                            (all with createdBy name).
+                                            PATCH. Updates any field. If quantity changes, auto-logs
+                                            ADJUSTMENT transaction with ±diff. Recomputes status +
+                                            totalValue. Guards against updating deleted items.
+                                            DELETE (soft). Sets isDeleted=true, deletedAt, deletedById,
+                                            deletionReason (required in body). Logs final STOCK_OUT
+                                            transaction for audit trail. Never hard-deletes.
+
+api/admin/inventory/[id]/transaction/route.ts  POST. Records a stock movement. Types: STOCK_IN |
+                                               STOCK_OUT | ADJUSTMENT | RETURN | DAMAGE | TRANSFER.
+                                               Guards: qty must be positive; OUT types cannot take
+                                               stock below 0. Records unitCost + totalCost at time of
+                                               transaction. Updates item quantity, totalValue, status.
 
 ── Admin-only endpoints ──────────────────────────────────────────────────────
 
@@ -297,8 +325,10 @@ ContactClient.tsx        'use client'. Contact form — POST /api/inquiries. Sho
 
 ```
 AdminSidebar.tsx         'use client'. Sidebar navigation. Accepts admin + isSuperAdmin props.
-                         Regular nav items visible to all. "Super Admin" section (Team link)
-                         visible only when isSuperAdmin=true. Role badge (⭐ Super) in footer.
+                         Regular nav items: Dashboard, Analytics, Products, Categories, Orders,
+                         Inquiries, Inventory, Testimonials, Blog, Content & Nav.
+                         "Super Admin" section (Team link) visible only when isSuperAdmin=true.
+                         Role badge (⭐ Super) in footer.
 
 AdminGalleryClient.tsx   'use client'. Gallery management — drag-drop file upload (POST /api/upload
                          then POST /api/gallery), featured star toggle, delete. Image grid preview.
@@ -339,6 +369,19 @@ ProductForm.tsx          'use client'. Create/edit product form. Drag-drop multi
                          (POST /api/upload). Reorder images, set primary. All product fields:
                          name, slug (auto), description, category, material, dimensions,
                          price, MOQ, featured, inStock.
+
+InventoryManager.tsx     'use client'. Full inventory management UI (597 lines).
+                         4-tab layout (All / Raw Materials / WIP / Finished Goods / MRO).
+                         Summary cards: total items, total value, low stock count, out-of-stock count.
+                         Table: name+SKU, category+sub, quantity (coloured by threshold), unit cost,
+                         total value, location, status badge, updated-by, action buttons.
+                         Add/Edit panel: right-side drawer with full form — name, SKU, category,
+                         sub-category, unit, qty, min/max qty thresholds, unit cost (live total
+                         value preview), supplier, location.
+                         Soft delete modal: requires deletion reason before confirming.
+                         Detail panel: item info grid + Record Movement form (type, qty, cost,
+                         reason, reference) + full transaction history timeline.
+                         Reload after every mutation. showDeleted toggle for audit view.
 
 TestimonialsManager.tsx  'use client'. Split layout — sticky form (left) + list (right).
                          Star rating picker (1-5). Featured toggle (shows/hides on homepage).
@@ -419,8 +462,11 @@ lib/whatsapp.ts      WhatsApp link generators. Exports:
 ## prisma/ — Database
 
 ```
-prisma/schema.prisma    11 models: Category, Product, ProductImage, Order, OrderItem,
-                        Inquiry, Admin, SiteContent, GalleryItem, Testimonial, BlogPost.
+prisma/schema.prisma    13 models: Category, Product, ProductImage, Order, OrderItem,
+                        Inquiry, Admin, SiteContent, GalleryItem, Testimonial, BlogPost,
+                        InventoryItem, InventoryTransaction.
+                        Admin model has 4 named inventory relations (createdBy / updatedBy /
+                        deletedBy / transactionCreatedBy) using @relation("Name") syntax.
                         SQLite provider (change to postgresql for production).
                         See project_context.md §4 for field details.
 
@@ -444,4 +490,4 @@ prisma/seed.ts          Seeds: 1 super admin (admin@craftura.com / admin123, isA
 
 ---
 
-*Last updated: after admin registration system + middleware fix.*
+*Last updated: after inventory module — InventoryItem + InventoryTransaction models, 3 API routes, InventoryManager component, /admin/inventory page.*
