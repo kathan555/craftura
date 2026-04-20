@@ -19,6 +19,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       createdBy: { select: { id: true, name: true } },
       updatedBy: { select: { id: true, name: true } },
       deletedBy: { select: { id: true, name: true } },
+      // ✅ _count must be included so component can read _count.transactions
+      _count: { select: { transactions: true } },
       transactions: {
         include: { createdBy: { select: { id: true, name: true } } },
         orderBy: { createdAt: 'desc' },
@@ -61,7 +63,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const cost   = unitCost    !== undefined ? (unitCost    ? parseFloat(unitCost)    : null) : existing.unitCost
     const totalValue = cost !== null ? qty * cost : null
 
-    // Auto-compute status unless manually overridden
     const newStatus = status || computeStatus(qty, minQty)
 
     const updated = await prisma.inventoryItem.update({
@@ -134,7 +135,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     },
   })
 
-  // Log the deletion as a STOCK_OUT transaction for audit trail
   await prisma.inventoryTransaction.create({
     data: {
       inventoryId: params.id,

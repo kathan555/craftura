@@ -12,7 +12,7 @@ interface InventoryItem {
   deletedAt?: string; deletionReason?: string
   createdAt: string; updatedAt: string
   createdBy?: { name: string }; updatedBy?: { name: string }; deletedBy?: { name: string }
-  _count: { transactions: number }
+  _count?: { transactions: number }   // ✅ optional — not always present
 }
 interface Transaction {
   id: string; type: string; quantity: number
@@ -109,9 +109,13 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
 
   const openDetail = async (item: InventoryItem) => {
     setDetailItem(item)
+    setShowTxnForm(false)
     const res  = await fetch(`/api/admin/inventory/${item.id}`)
     const data = await res.json()
-    setTransactions(data.transactions || [])
+    if (!data.error) {
+      setDetailItem(data)
+      setTransactions(data.transactions || [])
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,17 +137,44 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
   }
 
   const handleTxn = async (e: React.FormEvent) => {
-    e.preventDefault(); setTxnSaving(true); setTxnError('')
+    e.preventDefault()
+
+    // ── Client-side validation ──────────────────────────────
+    if (!txnForm.type) {
+      setTxnError('Please select a movement type.')
+      return
+    }
+    const parsedQty = parseFloat(txnForm.quantity)
+    if (!txnForm.quantity || isNaN(parsedQty) || parsedQty <= 0) {
+      setTxnError('Quantity must be a positive number greater than 0.')
+      return
+    }
+    if (txnForm.unitCost && isNaN(parseFloat(txnForm.unitCost))) {
+      setTxnError('Unit cost must be a valid number.')
+      return
+    }
+
+    setTxnSaving(true); setTxnError('')
     try {
-      const res  = await fetch(`/api/admin/inventory/${detailItem!.id}/transaction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(txnForm) })
+      const res  = await fetch(`/api/admin/inventory/${detailItem!.id}/transaction`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(txnForm),
+      })
       const data = await res.json()
-      if (!res.ok) { setTxnError(data.error || 'Failed'); return }
-      setShowTxnForm(false); setTxnForm({ type: 'STOCK_IN', quantity: '', unitCost: '', reason: '', reference: '' })
-      // refresh detail
+      if (!res.ok) { setTxnError(data.error || 'Failed to record movement'); return }
+
+      setShowTxnForm(false)
+      setTxnForm({ type: 'STOCK_IN', quantity: '', unitCost: '', reason: '', reference: '' })
+
+      // ✅ Refresh the detail panel — response includes _count now
       const refreshed = await fetch(`/api/admin/inventory/${detailItem!.id}`).then(r => r.json())
-      setDetailItem(refreshed); setTransactions(refreshed.transactions || [])
+      if (refreshed && !refreshed.error) {
+        setDetailItem(refreshed)
+        setTransactions(refreshed.transactions || [])
+      }
       await reload()
-    } catch { setTxnError('Something went wrong') }
+    } catch { setTxnError('Something went wrong. Please try again.') }
     setTxnSaving(false)
   }
 
@@ -349,7 +380,6 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
                   <textarea rows={2} className="form-input resize-none text-sm" placeholder="Optional details about this item…" value={form.description} onChange={f('description')} />
                 </div>
 
-                {/* Quantity & Units */}
                 <div>
                   <label className="block text-xs font-medium text-charcoal-600 mb-1.5">Quantity {editItem ? '' : '*'}</label>
                   <input type="number" min="0" step="0.01" className="form-input" placeholder="0" value={form.quantity} onChange={f('quantity')} required={!editItem} />
@@ -369,7 +399,6 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
                   <input type="number" min="0" step="0.01" className="form-input" placeholder="Storage limit" value={form.maxQuantity} onChange={f('maxQuantity')} />
                 </div>
 
-                {/* Cost */}
                 <div>
                   <label className="block text-xs font-medium text-charcoal-600 mb-1.5">Unit Cost (₹)</label>
                   <input type="number" min="0" step="0.01" className="form-input" placeholder="0.00" value={form.unitCost} onChange={f('unitCost')} />
@@ -383,7 +412,6 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
                   )}
                 </div>
 
-                {/* Supplier */}
                 <div>
                   <label className="block text-xs font-medium text-charcoal-600 mb-1.5">Supplier</label>
                   <input className="form-input" placeholder="Supplier name" value={form.supplier} onChange={f('supplier')} />
@@ -427,7 +455,7 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
                 {!detailItem.isDeleted && (
                   <button onClick={() => setShowTxnForm(p => !p)}
                     className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                    style={{ background: showTxnForm ? '#f1f5f9' : 'var(--accent)', color: showTxnForm ? '#64748b' : '#fff' }}>
+                    style={{ background: showTxnForm ? '#f1f5f9' : 'var(--accent, #a85e2e)', color: showTxnForm ? '#64748b' : '#fff' }}>
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
                     {showTxnForm ? 'Cancel' : 'Record Movement'}
                   </button>
@@ -445,7 +473,8 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
                   { label: 'Current Qty', value: `${fmt(detailItem.quantity, 2)} ${detailItem.unit}`, color: detailItem.quantity <= 0 ? '#dc2626' : '#1c1917' },
                   { label: 'Unit Cost',    value: fmtRs(detailItem.unitCost), color: '#1c1917' },
                   { label: 'Total Value',  value: fmtRs(detailItem.totalValue), color: '#a85e2e' },
-                  { label: 'Transactions', value: String(detailItem._count.transactions), color: '#1c1917' },
+                  // ✅ Fixed: optional chaining + fallback to transactions.length
+                  { label: 'Transactions', value: String(detailItem._count?.transactions ?? transactions.length), color: '#1c1917' },
                 ].map(card => (
                   <div key={card.label} className="bg-stone-50 rounded-xl p-3.5">
                     <div className="text-xs text-stone-400 mb-1">{card.label}</div>
@@ -476,40 +505,102 @@ export default function InventoryManager({ initialItems, initialSummary }: { ini
               {showTxnForm && (
                 <div className="bg-stone-50 rounded-2xl border border-stone-200 p-5">
                   <h3 className="font-semibold text-charcoal-700 text-sm mb-4">Record Stock Movement</h3>
-                  {txnError && <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-3 py-2 text-xs mb-3">{txnError}</div>}
+                  {txnError && (
+                    <div className="bg-red-50 border border-red-200 text-red-600 rounded-lg px-3 py-2 text-xs mb-3 flex items-center gap-2">
+                      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      {txnError}
+                    </div>
+                  )}
                   <form onSubmit={handleTxn} className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-charcoal-600 mb-1.5">Movement Type *</label>
-                        <select required className="form-input text-sm" value={txnForm.type}
-                          onChange={e => setTxnForm(p => ({ ...p, type: e.target.value }))}>
+                        <label className="block text-xs font-medium text-charcoal-600 mb-1.5">
+                          Movement Type <span className="text-red-400">*</span>
+                        </label>
+                        <select
+                          required
+                          className="form-input text-sm"
+                          value={txnForm.type}
+                          onChange={e => { setTxnForm(p => ({ ...p, type: e.target.value })); setTxnError('') }}
+                        >
                           {TXN_TYPES.map(t => <option key={t.key} value={t.key}>{t.dir} {t.label}</option>)}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-charcoal-600 mb-1.5">Quantity *</label>
-                        <input required type="number" min="0.01" step="0.01" className="form-input text-sm" placeholder={`in ${detailItem.unit}`}
-                          value={txnForm.quantity} onChange={e => setTxnForm(p => ({ ...p, quantity: e.target.value }))} />
+                        <label className="block text-xs font-medium text-charcoal-600 mb-1.5">
+                          Quantity <span className="text-red-400">*</span>
+                          <span className="text-stone-400 font-normal ml-1">in {detailItem.unit}</span>
+                        </label>
+                        <input
+                          required
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          className={`form-input text-sm ${txnError && !txnForm.quantity ? 'border-red-300' : ''}`}
+                          placeholder={`e.g. 10`}
+                          value={txnForm.quantity}
+                          onChange={e => { setTxnForm(p => ({ ...p, quantity: e.target.value })); setTxnError('') }}
+                        />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-charcoal-600 mb-1.5">Unit Cost (₹)</label>
-                        <input type="number" min="0" step="0.01" className="form-input text-sm" placeholder="Leave blank to keep existing"
-                          value={txnForm.unitCost} onChange={e => setTxnForm(p => ({ ...p, unitCost: e.target.value }))} />
+                        <label className="block text-xs font-medium text-charcoal-600 mb-1.5">
+                          Unit Cost (₹)
+                          <span className="text-stone-400 font-normal ml-1">leave blank to keep existing</span>
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          className="form-input text-sm"
+                          placeholder={detailItem.unitCost ? `Current: ₹${detailItem.unitCost}` : 'e.g. 250.00'}
+                          value={txnForm.unitCost}
+                          onChange={e => { setTxnForm(p => ({ ...p, unitCost: e.target.value })); setTxnError('') }}
+                        />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-charcoal-600 mb-1.5">Reference</label>
-                        <input className="form-input text-sm" placeholder="PO no., batch no., etc."
-                          value={txnForm.reference} onChange={e => setTxnForm(p => ({ ...p, reference: e.target.value }))} />
+                        <input
+                          className="form-input text-sm"
+                          placeholder="PO no., batch no., job card…"
+                          value={txnForm.reference}
+                          onChange={e => setTxnForm(p => ({ ...p, reference: e.target.value }))}
+                        />
                       </div>
                       <div className="col-span-2">
                         <label className="block text-xs font-medium text-charcoal-600 mb-1.5">Reason</label>
-                        <input className="form-input text-sm" placeholder="e.g. Used in Teak Sofa batch #12, Received from Rajesh Timber"
-                          value={txnForm.reason} onChange={e => setTxnForm(p => ({ ...p, reason: e.target.value }))} />
+                        <input
+                          className="form-input text-sm"
+                          placeholder="e.g. Used in Teak Sofa batch #12, Received from Rajesh Timber"
+                          value={txnForm.reason}
+                          onChange={e => setTxnForm(p => ({ ...p, reason: e.target.value }))}
+                        />
                       </div>
                     </div>
+
+                    {/* Live preview of what will happen */}
+                    {txnForm.quantity && parseFloat(txnForm.quantity) > 0 && (
+                      <div className="bg-white border border-stone-200 rounded-lg px-3 py-2 text-xs text-stone-500 flex items-center gap-2">
+                        <span>Stock after movement:</span>
+                        <span className="font-semibold text-charcoal-800">
+                          {(() => {
+                            const isOut = ['STOCK_OUT', 'DAMAGE', 'TRANSFER'].includes(txnForm.type)
+                            const newQty = detailItem.quantity + (isOut ? -parseFloat(txnForm.quantity) : parseFloat(txnForm.quantity))
+                            return (
+                              <span className={newQty < 0 ? 'text-red-500' : ''}>
+                                {fmt(newQty, 2)} {detailItem.unit}
+                                {newQty < 0 && ' ⚠️ Insufficient stock'}
+                              </span>
+                            )
+                          })()}
+                        </span>
+                      </div>
+                    )}
+
                     <button type="submit" disabled={txnSaving}
                       className="w-full py-2.5 text-sm font-medium text-white rounded-xl transition-colors disabled:opacity-60"
-                      style={{ background: 'var(--accent)' }}>
+                      style={{ background: '#a85e2e' }}>
                       {txnSaving ? 'Saving…' : 'Record Movement'}
                     </button>
                   </form>
