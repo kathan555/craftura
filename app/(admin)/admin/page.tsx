@@ -1,4 +1,3 @@
-import { getAdminSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import type { Metadata } from 'next'
@@ -6,8 +5,14 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = { title: 'Dashboard | Admin' }
 
 async function getDashboardData() {
+  const monthStart = new Date()
+  monthStart.setDate(1)
+  monthStart.setHours(0, 0, 0, 0)
+  const monthEnd = new Date(monthStart)
+  monthEnd.setMonth(monthEnd.getMonth() + 1)
+
   const [totalOrders, totalInquiries, totalProducts, totalCategories,
-    pendingOrders, recentOrders, recentInquiries, unreadInquiries] = await Promise.all([
+    pendingOrders, recentOrders, recentInquiries, unreadInquiries, inProductionThisMonth] = await Promise.all([
     prisma.order.count(),
     prisma.inquiry.count(),
     prisma.product.count(),
@@ -19,8 +24,27 @@ async function getDashboardData() {
     }),
     prisma.inquiry.findMany({ take: 5, orderBy: { createdAt: 'desc' } }),
     prisma.inquiry.count({ where: { isRead: false } }),
+    prisma.order.findMany({
+      where: {
+        status: 'IN_PRODUCTION',
+        expectedDeliveryAt: {
+          gte: monthStart,
+          lt: monthEnd,
+        },
+      },
+      include: {
+        items: { include: { product: { select: { price: true } } } },
+      },
+    }),
   ])
-  return { totalOrders, totalInquiries, totalProducts, totalCategories, pendingOrders, recentOrders, recentInquiries, unreadInquiries }
+  const revenueForecast = inProductionThisMonth.reduce((sum, order) => {
+    return sum + order.items.reduce((acc, item) => acc + (item.product.price || 0) * item.quantity, 0)
+  }, 0)
+
+  return {
+    totalOrders, totalInquiries, totalProducts, totalCategories, pendingOrders,
+    recentOrders, recentInquiries, unreadInquiries, revenueForecast, forecastOrderCount: inProductionThisMonth.length,
+  }
 }
 
 function statusBadge(status: string) {
@@ -42,7 +66,7 @@ function timeAgo(date: Date | string) {
 
 export default async function AdminDashboard() {
   const { totalOrders, totalInquiries, totalProducts, totalCategories,
-    pendingOrders, recentOrders, recentInquiries, unreadInquiries } = await getDashboardData()
+    pendingOrders, recentOrders, recentInquiries, unreadInquiries, revenueForecast, forecastOrderCount } = await getDashboardData()
 
   const stats = [
     { label: 'Total Orders', value: totalOrders, sub: `${pendingOrders} pending`, href: '/admin/orders', color: 'text-blue-600', bg: 'bg-blue-50',
@@ -80,6 +104,14 @@ export default async function AdminDashboard() {
             <div className={`text-xs ${s.color} font-medium mt-1`}>{s.sub}</div>
           </Link>
         ))}
+      </div>
+
+      <div className="mb-8 bg-white rounded-2xl border border-stone-100 shadow-sm p-6">
+        <p className="text-xs text-stone-400 mb-1">Revenue Forecast (this month)</p>
+        <p className="text-2xl font-display font-semibold text-charcoal-800">₹{revenueForecast.toLocaleString('en-IN')}</p>
+        <p className="text-sm text-stone-500 mt-1">
+          IN_PRODUCTION orders expected this month: <span className="font-medium text-charcoal-700">{forecastOrderCount}</span>
+        </p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -141,6 +173,7 @@ export default async function AdminDashboard() {
         <div className="flex flex-wrap gap-3">
           {[
             { href: '/admin/analytics',   label: '📊 Analytics & Export' },
+            { href: '/admin/manufacturing-cost', label: '🏭 Manufacturing Cost Report' },
             { href: '/admin/products/new', label: '+ Add Product' },
             { href: '/admin/categories',  label: 'Manage Categories' },
             { href: '/admin/orders',      label: 'View All Orders' },

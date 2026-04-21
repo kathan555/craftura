@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import OrderStatusUpdater from '@/components/admin/OrderStatusUpdater'
+import RepeatCustomerBadge from '@/components/admin/RepeatCustomerBadge'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'Orders | Admin' }
@@ -33,10 +34,17 @@ export default async function AdminOrdersPage({
     orderBy: { createdAt: 'desc' },
   })
 
-  const statusCounts = await prisma.order.groupBy({
-    by: ['status'],
-    _count: { status: true },
-  })
+  const [statusCounts, emailCounts] = await Promise.all([
+    prisma.order.groupBy({
+      by: ['status'],
+      _count: { status: true },
+    }),
+    prisma.order.groupBy({
+      by: ['email'],
+      _count: { email: true },
+    }),
+  ])
+  const emailCountMap = new Map(emailCounts.map(row => [row.email, row._count.email]))
 
   return (
     <div className="p-8">
@@ -101,6 +109,11 @@ export default async function AdminOrdersPage({
                         <p className="text-xs text-stone-400 mb-0.5">Customer</p>
                         <p className="font-medium text-charcoal-700">{order.customerName}</p>
                         <p className="text-stone-500 text-xs">{order.email}</p>
+                        {(emailCountMap.get(order.email) || 0) > 1 && (
+                          <div className="mt-1.5">
+                            <RepeatCustomerBadge email={order.email} count={emailCountMap.get(order.email) || 0} />
+                          </div>
+                        )}
                         <p className="text-stone-500 text-xs">{order.phone}</p>
                       </div>
                       <div>
@@ -136,7 +149,11 @@ export default async function AdminOrdersPage({
                     <p className="text-xs text-stone-400">
                       {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
-                    <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
+                    <OrderStatusUpdater
+                      orderId={order.id}
+                      currentStatus={order.status}
+                      expectedDeliveryAt={order.expectedDeliveryAt}
+                    />
                   </div>
                 </div>
               </div>

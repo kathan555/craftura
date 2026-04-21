@@ -57,6 +57,7 @@ model Order {
   notes        String?
   orderType    String      @default("B2C")
   status       String      @default("PENDING")
+  expectedDeliveryAt DateTime?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   items        OrderItem[]

@@ -63,6 +63,7 @@ const NAV: NavItem[] = [
     type: 'group', key: 'manufacturing', label: 'Manufacturing', icon: Icon.mfg,
     children: [
       { label: 'Inventory', href: '/admin/inventory', icon: Icon.inventory },
+      { label: 'Cost Report', href: '/admin/manufacturing-cost', icon: Icon.analytics },
     ],
   },
   {

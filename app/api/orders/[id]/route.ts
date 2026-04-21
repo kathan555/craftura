@@ -7,14 +7,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
-    const { status } = await req.json()
+    const { status, expectedDeliveryAt } = await req.json()
     const validStatuses = ['PENDING', 'CONFIRMED', 'IN_PRODUCTION', 'DELIVERED', 'CANCELLED']
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
     const order = await prisma.order.update({
       where: { id: params.id },
-      data: { status },
+      data: {
+        status,
+        expectedDeliveryAt: expectedDeliveryAt ? new Date(expectedDeliveryAt) : null,
+      },
     })
     return NextResponse.json(order)
   } catch {
