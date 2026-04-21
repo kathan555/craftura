@@ -12,11 +12,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
+    let parsedExpectedDelivery: Date | null = null
+    if (expectedDeliveryAt) {
+      const parsed = new Date(expectedDeliveryAt)
+      if (Number.isNaN(parsed.getTime())) {
+        return NextResponse.json({ error: 'Invalid expected delivery date' }, { status: 400 })
+      }
+      parsedExpectedDelivery = parsed
+    }
+
     const order = await prisma.order.update({
       where: { id: params.id },
       data: {
         status,
-        expectedDeliveryAt: expectedDeliveryAt ? new Date(expectedDeliveryAt) : null,
+        expectedDeliveryAt: parsedExpectedDelivery,
       },
     })
     return NextResponse.json(order)

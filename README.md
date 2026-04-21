@@ -145,6 +145,7 @@ craftura/
 | Login | `/admin/login` | Secure JWT login |
 | Dashboard | `/admin` | Stats, recent orders, quick actions |
 | Analytics | `/admin/analytics` | Charts + data tables + CSV/Excel export |
+| Manufacturing Cost | `/admin/manufacturing-cost` | Material consumption cost report + trend |
 | Products | `/admin/products` | List, add, edit, delete products |
 | New Product | `/admin/products/new` | Create with drag-and-drop image upload |
 | Edit Product | `/admin/products/[id]/edit` | Edit product details + images |
@@ -187,6 +188,9 @@ craftura/
 
 ### Admin Features
 - **Analytics Dashboard** — orders over time (bar), B2B/B2C split (donut), status breakdown, top products, trend line, monthly data table
+- **Manufacturing Cost Report** — monthly consumed inventory cost, category split, top expensive materials, 6-month trend
+- **Repeat Customer Detection** — order-level badge and click-to-view history modal by customer email
+- **Revenue Forecast Widget** — current month expected revenue from `IN_PRODUCTION` orders with expected delivery date
 - **Data Export** — CSV and Excel (no library) for orders, inquiries, products with date range filter
 - **Image Upload** — drag-and-drop to `public/uploads/`, reorder, set primary
 - **Nav Visibility** — toggle Gallery, Bulk Orders, About, Contact on/off from CMS

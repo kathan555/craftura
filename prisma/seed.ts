@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 async function main() {
   // Create admin
   const hashedPassword = await bcrypt.hash('admin123', 12)
-  await prisma.admin.upsert({
+  const adminUser = await prisma.admin.upsert({
     where: { email: 'admin@craftura.com' },
     update: { isActive: true, isSuperAdmin: true, role: 'superadmin' },
     create: {
@@ -299,6 +299,146 @@ Ask for the warranty in writing, and read what is and is not covered.
   for (const post of blogPosts) {
     const existing = await prisma.blogPost.findUnique({ where: { slug: post.slug } })
     if (!existing) await prisma.blogPost.create({ data: post })
+  }
+
+  // ── BI sample data (repeat customers, forecast-ready orders, manufacturing costs) ──
+  const today = new Date()
+  const thisMonth = new Date(today.getFullYear(), today.getMonth(), 10)
+  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 12)
+
+  const allProducts = await prisma.product.findMany({
+    take: 4,
+    orderBy: { createdAt: 'asc' },
+    select: { id: true },
+  })
+
+  if (allProducts.length >= 2) {
+    const orderSeeds = [
+      {
+        orderNumber: 'BI-SEED-1001',
+        customerName: 'Aster Hotel Group',
+        email: 'procurement@asterhotels.com',
+        phone: '+91 90000 10001',
+        address: 'Satellite, Ahmedabad',
+        orderType: 'B2B',
+        status: 'IN_PRODUCTION',
+        expectedDeliveryAt: thisMonth,
+        itemIndexes: [0, 1],
+      },
+      {
+        orderNumber: 'BI-SEED-1002',
+        customerName: 'Aster Hotel Group',
+        email: 'procurement@asterhotels.com',
+        phone: '+91 90000 10001',
+        address: 'Satellite, Ahmedabad',
+        orderType: 'B2B',
+        status: 'CONFIRMED',
+        expectedDeliveryAt: null,
+        itemIndexes: [1],
+      },
+      {
+        orderNumber: 'BI-SEED-1003',
+        customerName: 'Orbit Interiors',
+        email: 'orders@orbitinteriors.in',
+        phone: '+91 90000 10003',
+        address: 'Prahladnagar, Ahmedabad',
+        orderType: 'B2B',
+        status: 'IN_PRODUCTION',
+        expectedDeliveryAt: nextMonth,
+        itemIndexes: [2, 3],
+      },
+    ]
+
+    for (const seed of orderSeeds) {
+      await prisma.order.upsert({
+        where: { orderNumber: seed.orderNumber },
+        update: {
+          status: seed.status,
+          expectedDeliveryAt: seed.expectedDeliveryAt,
+          orderType: seed.orderType,
+        },
+        create: {
+          orderNumber: seed.orderNumber,
+          customerName: seed.customerName,
+          email: seed.email,
+          phone: seed.phone,
+          address: seed.address,
+          orderType: seed.orderType,
+          status: seed.status,
+          expectedDeliveryAt: seed.expectedDeliveryAt,
+          items: {
+            create: seed.itemIndexes
+              .filter(idx => allProducts[idx])
+              .map(idx => ({
+                productId: allProducts[idx].id,
+                quantity: idx % 2 === 0 ? 8 : 14,
+              })),
+          },
+        },
+      })
+    }
+  }
+
+  const inventorySeeds = [
+    { name: 'Teak Planks A-Grade', sku: 'BI-RM-TEAK-01', category: 'RAW_MATERIAL', unit: 'sheets', unitCost: 4200, quantity: 180 },
+    { name: 'Sheesham Boards', sku: 'BI-RM-SHEE-01', category: 'RAW_MATERIAL', unit: 'sheets', unitCost: 3100, quantity: 220 },
+    { name: 'Industrial Sandpaper', sku: 'BI-MRO-SAND-01', category: 'MRO', unit: 'rolls', unitCost: 260, quantity: 95 },
+    { name: 'PU Finish Chemical', sku: 'BI-MRO-PU-01', category: 'MRO', unit: 'liters', unitCost: 480, quantity: 130 },
+  ]
+
+  const inventoryMap: Record<string, string> = {}
+  for (const item of inventorySeeds) {
+    const inv = await prisma.inventoryItem.upsert({
+      where: { sku: item.sku },
+      update: {
+        category: item.category,
+        unit: item.unit,
+        unitCost: item.unitCost,
+        quantity: item.quantity,
+        totalValue: item.quantity * item.unitCost,
+        updatedById: adminUser.id,
+      },
+      create: {
+        ...item,
+        totalValue: item.quantity * item.unitCost,
+        createdById: adminUser.id,
+        updatedById: adminUser.id,
+      },
+    })
+    inventoryMap[item.sku] = inv.id
+  }
+
+  await prisma.inventoryTransaction.deleteMany({
+    where: {
+      reference: { startsWith: 'BI-SEED-' },
+    },
+  })
+
+  for (let i = 0; i < 6; i++) {
+    const txnDate = new Date(today.getFullYear(), today.getMonth() - i, 11)
+    const monthTag = `${txnDate.getFullYear()}${String(txnDate.getMonth() + 1).padStart(2, '0')}`
+    const txns = [
+      { sku: 'BI-RM-TEAK-01', type: 'STOCK_OUT', qty: 10 + i * 2, cost: 4200 },
+      { sku: 'BI-RM-SHEE-01', type: 'STOCK_OUT', qty: 8 + i, cost: 3100 },
+      { sku: 'BI-MRO-SAND-01', type: 'STOCK_OUT', qty: 5 + i, cost: 260 },
+      { sku: 'BI-MRO-PU-01', type: 'DAMAGE', qty: 2 + Math.floor(i / 2), cost: 480 },
+    ]
+
+    for (const txn of txns) {
+      await prisma.inventoryTransaction.create({
+        data: {
+          inventoryId: inventoryMap[txn.sku],
+          type: txn.type,
+          quantity: txn.qty,
+          unitCost: txn.cost,
+          totalCost: txn.qty * txn.cost,
+          reason: 'BI sample consumption data',
+          reference: `BI-SEED-${monthTag}-${txn.sku}`,
+          createdById: adminUser.id,
+          createdAt: txnDate,
+        },
+      })
+    }
   }
 
   console.log('✅ Database seeded successfully')

@@ -12,11 +12,13 @@ export default function OrderStatusUpdater({
     expectedDeliveryAt ? new Date(expectedDeliveryAt).toISOString().slice(0, 10) : '',
   )
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const router = useRouter()
 
   const save = async (nextStatus: string, nextDeliveryDate: string) => {
     setSaving(true)
-    await fetch(`/api/orders/${orderId}`, {
+    setError('')
+    const res = await fetch(`/api/orders/${orderId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -24,19 +26,39 @@ export default function OrderStatusUpdater({
         expectedDeliveryAt: nextDeliveryDate || null,
       }),
     })
+    if (!res.ok) {
+      const json = await res.json().catch(() => null)
+      throw new Error(json?.error || 'Failed to update order')
+    }
     router.refresh()
     setSaving(false)
   }
 
   const handleChange = async (newStatus: string) => {
+    const prevStatus = status
     setStatus(newStatus)
-    await save(newStatus, deliveryDate)
+    try {
+      await save(newStatus, deliveryDate)
+    } catch (e: any) {
+      setStatus(prevStatus)
+      setError(e.message || 'Failed to update status')
+      setSaving(false)
+    }
   }
 
   const handleDateChange = async (newDate: string) => {
+    const prevDate = deliveryDate
     setDeliveryDate(newDate)
-    await save(status, newDate)
+    try {
+      await save(status, newDate)
+    } catch (e: any) {
+      setDeliveryDate(prevDate)
+      setError(e.message || 'Failed to update delivery date')
+      setSaving(false)
+    }
   }
+
+  const isInProduction = status === 'IN_PRODUCTION'
 
   return (
     <div className="flex flex-col items-end gap-2">
@@ -65,14 +87,26 @@ export default function OrderStatusUpdater({
           )}
         </div>
       </div>
-      <input
-        type="date"
-        value={deliveryDate}
-        onChange={e => handleDateChange(e.target.value)}
-        disabled={saving}
-        className="text-xs px-2 py-1.5 rounded-lg border border-stone-200 text-stone-600 bg-white"
-        title="Expected delivery date"
-      />
+      {(isInProduction || deliveryDate) && (
+        <div className="flex flex-col items-end gap-1">
+          <input
+            type="date"
+            value={deliveryDate}
+            onChange={e => handleDateChange(e.target.value)}
+            disabled={saving}
+            className={`text-xs px-2 py-1.5 rounded-lg border bg-white ${
+              isInProduction && !deliveryDate
+                ? 'border-amber-300 text-amber-800'
+                : 'border-stone-200 text-stone-600'
+            }`}
+            title="Expected delivery date"
+          />
+          {isInProduction && !deliveryDate && (
+            <p className="text-[10px] text-amber-700">Set date for forecast</p>
+          )}
+        </div>
+      )}
+      {error && <p className="text-[10px] text-red-600 max-w-36 text-right">{error}</p>}
     </div>
   )
 }
