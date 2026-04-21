@@ -42,6 +42,9 @@ async function getHomeData() {
 export default async function HomePage() {
   const { featuredProducts, categories, testimonials, blogPosts } = await getHomeData()
   const jsonLd = localBusinessJsonLd()
+  const spotlightCategories = categories.slice(0, 4)
+  const latestStory = blogPosts[0]
+  const highlightedTestimonial = testimonials[0]
 
   return (
     <div style={{ background: 'var(--bg-base)' }}>
@@ -51,61 +54,72 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* ── HERO ── */}
+      {/* ── HERO: STUDIO DASHBOARD ── */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
-        <div className="absolute inset-0" style={{ background: 'var(--bg-surface)' }}>
+        <div className="absolute inset-0" style={{ background: 'var(--hero-bg)' }}>
           <Image
             src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1920&q=80"
-            alt="Craftura premium furniture showroom" fill className="object-cover opacity-40" priority
+            alt="Craftura premium furniture showroom"
+            fill
+            className="object-cover drift-soft"
+            style={{ opacity: 'var(--hero-image-opacity)' }}
+            priority
           />
-          <div className="absolute inset-0"
-            style={{ background: 'linear-gradient(to right, rgba(12,10,9,0.85) 0%, rgba(12,10,9,0.5) 60%, transparent 100%)' }}/>
+          <div className="absolute inset-0" style={{ background: 'var(--hero-overlay)' }}/>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
-          <div className="max-w-2xl">
+          <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 items-end">
+            <div className="max-w-2xl">
             <p className="text-sm tracking-[0.3em] uppercase font-medium mb-6 animate-fade-in"
               style={{ color: 'var(--color-wood-300)' }}>
-              Est. 1994 · Ahmedabad, India
+              Craftura Studio Dashboard
             </p>
             <h1 className="font-display text-6xl sm:text-7xl lg:text-8xl font-semibold text-white leading-[0.95] mb-6 animate-slide-up">
-              Crafted<br/>
-              <em className="italic font-light">for</em><br/>
-              Generations
+              Design.<br/>
+              <em className="italic font-light">Build.</em><br/>
+              Live Better.
             </h1>
             <p className="text-lg sm:text-xl leading-relaxed mb-10 max-w-lg animate-slide-up stagger-2"
               style={{ color: 'rgba(255,255,255,0.75)' }}>
-              Premium furniture handcrafted by master artisans. Serving homes, hotels and offices across India since 1994.
+              A new way to discover furniture: explore curated moods, material stories, craftsmanship timelines and fresh studio picks in one immersive experience.
             </p>
             <div className="flex flex-wrap gap-4 animate-fade-in stagger-3">
               <Link href="/products" className="btn-wood">
-                Explore Collection
+                Enter Studio Picks
                 <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
                   <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </Link>
-              <Link href="/bulk-orders"
+              <Link href="/contact"
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-md text-sm font-medium transition-all text-white"
                 style={{ border: '1.5px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.08)' }}>
-                Bulk Orders (B2B)
+                Start Your Project
               </Link>
             </div>
+            </div>
 
-            {/* Stats */}
-            <div className="flex gap-10 mt-16 pt-10 animate-fade-in stagger-4"
-              style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
-              {[
-                { value: '30+',   label: 'Years Experience' },
-                { value: '5000+', label: 'Pieces Crafted' },
-                { value: '200+',  label: 'B2B Clients' },
-              ].map(s => (
-                <div key={s.label}>
-                  <div className="font-display text-3xl font-semibold text-white">{s.value}</div>
-                  <div className="text-xs tracking-wider uppercase mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    {s.label}
+            <div className="rounded-2xl p-6 border animate-fade-in stagger-4 float-slow hover-depth"
+              style={{ borderColor: 'rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}>
+              <p className="text-xs tracking-[0.25em] uppercase mb-5" style={{ color: 'rgba(255,255,255,0.75)' }}>
+                Live Signals
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { value: `${featuredProducts.length}`, label: 'Fresh Picks' },
+                  { value: `${categories.length}`, label: 'Mood Categories' },
+                  { value: '48h', label: 'Concept Turnaround' },
+                  { value: '30+', label: 'Years Studio Craft' },
+                ].map((signal) => (
+                  <div key={signal.label} className="rounded-xl p-4"
+                    style={{ background: 'rgba(0,0,0,0.2)' }}>
+                    <div className="font-display text-3xl text-white">{signal.value}</div>
+                    <div className="text-xs tracking-wider uppercase mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                      {signal.label}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -118,21 +132,26 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── CATEGORIES ── */}
+      {/* ── CURATED MOODS ── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center mb-14">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-14">
+          <div>
           <p className="text-xs tracking-[0.3em] uppercase font-medium mb-3" style={{ color: 'var(--accent-text)' }}>
-            Our Range
+            Curated Moods
           </p>
           <h2 className="font-display text-4xl sm:text-5xl" style={{ color: 'var(--text-primary)' }}>
-            Shop by Category
+            Spaces by Feeling
           </h2>
+          </div>
+          <p className="max-w-lg text-sm sm:text-base" style={{ color: 'var(--text-muted)' }}>
+            Instead of a basic category list, discover directional room vibes that help you shortlist faster.
+          </p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-          {categories.map((cat, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {spotlightCategories.map((cat, i) => (
             <Link key={cat.id} href={`/products?category=${cat.slug}`}
-              className={`group relative overflow-hidden rounded-2xl img-zoom card-hover ${i === 0 ? 'md:col-span-2' : ''}`}
-              style={{ aspectRatio: i === 0 ? '16/9' : '4/3' }}>
+              className={`group relative overflow-hidden rounded-2xl img-zoom card-hover animate-fade-in stagger-${Math.min(i + 1, 5)}`}
+              style={{ aspectRatio: '4/5' }}>
               <Image
                 src={cat.imageUrl || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600'}
                 alt={`${cat.name} furniture`} fill className="object-cover"
@@ -141,14 +160,12 @@ export default async function HomePage() {
                 style={{ background: 'linear-gradient(to top, rgba(12,10,9,0.8) 0%, rgba(12,10,9,0.15) 60%, transparent 100%)' }}/>
               <div className="absolute bottom-0 left-0 p-5 sm:p-7">
                 <h3 className="font-display text-white text-xl sm:text-2xl font-semibold">{cat.name}</h3>
-                {cat.description && (
-                  <p className="text-sm mt-1 hidden sm:block" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                    {cat.description}
-                  </p>
-                )}
-                <div className="flex items-center gap-2 mt-3 text-sm font-medium opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300"
+                <p className="text-sm mt-1 hidden sm:block" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  {cat.description || 'Handpicked compositions from the Craftura studio board.'}
+                </p>
+                <div className="flex items-center gap-2 mt-3 text-sm font-medium opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500"
                   style={{ color: 'var(--color-wood-300)' }}>
-                  <span>Explore</span>
+                  <span>View Mood</span>
                   <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
                     <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -162,7 +179,7 @@ export default async function HomePage() {
       {/* ── MARQUEE STRIP ── */}
       <div className="py-5 overflow-hidden" style={{ background: 'var(--accent)' }}>
         <div className="flex gap-12 animate-marquee whitespace-nowrap">
-          {Array(4).fill(['Custom Orders','Bulk Manufacturing','Premium Materials','30+ Years Experience','Pan-India Delivery','B2B Specialists']).flat().map((text, i) => (
+          {Array(4).fill(['Moodboard-first browsing', 'Material storytelling', 'Studio-curated drops', 'Craft timeline', 'Project planning support', 'Pan-India delivery']).flat().map((text, i) => (
             <span key={i} className="text-sm font-medium tracking-widest uppercase shrink-0 text-white">
               {text}
               <span className="mx-3" style={{ color: 'rgba(255,255,255,0.45)' }}>✦</span>
@@ -171,19 +188,19 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* ── FEATURED PRODUCTS ── */}
+      {/* ── STUDIO PICKS ── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-14">
           <div>
             <p className="text-xs tracking-[0.3em] uppercase font-medium mb-3" style={{ color: 'var(--accent-text)' }}>
-              Handpicked
+              Studio Curated
             </p>
             <h2 className="font-display text-4xl sm:text-5xl" style={{ color: 'var(--text-primary)' }}>
-              Featured Pieces
+              This Week's Picks
             </h2>
           </div>
           <Link href="/products" className="btn-outline text-sm shrink-0 self-start sm:self-auto">
-            View All Products
+            View Collection
             <svg width="14" height="14" fill="none" viewBox="0 0 14 14">
               <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -192,7 +209,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {featuredProducts.map(product => (
             <Link key={product.id} href={`/products/${product.slug}`}
-              className="group card-hover rounded-2xl overflow-hidden border"
+              className="group card-hover hover-depth rounded-2xl overflow-hidden border animate-fade-in"
               style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-base)' }}>
               <div className="relative aspect-[4/3] img-zoom">
                 <Image
@@ -248,18 +265,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── ABOUT PREVIEW ── */}
+      {/* ── CRAFT TIMELINE ── */}
       <section className="py-24" style={{ background: 'var(--bg-surface)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-14 items-center">
-            <div className="relative">
+            <div className="relative float-slow">
               <div className="relative aspect-[4/5] rounded-2xl overflow-hidden">
                 <Image src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800"
                   alt="Craftura furniture workshop Ahmedabad" fill className="object-cover"/>
               </div>
-              <div className="absolute -bottom-5 -right-5 w-40 h-40 rounded-2xl -z-10"
+              <div className="absolute -bottom-5 -right-5 w-40 h-40 rounded-2xl -z-10 drift-soft"
                 style={{ background: 'var(--accent)' }}/>
-              <div className="absolute -top-5 -left-5 w-28 h-28 rounded-2xl -z-10"
+              <div className="absolute -top-5 -left-5 w-28 h-28 rounded-2xl -z-10 drift-soft"
                 style={{ background: 'var(--bg-subtle)' }}/>
               <div className="absolute top-6 -right-6 text-white p-5 rounded-xl shadow-xl"
                 style={{ background: 'var(--accent)' }}>
@@ -269,27 +286,24 @@ export default async function HomePage() {
             </div>
             <div>
               <p className="text-xs tracking-[0.3em] uppercase font-medium mb-5" style={{ color: 'var(--accent-text)' }}>
-                Our Story
+                Craft Timeline
               </p>
               <h2 className="font-display text-4xl sm:text-5xl leading-tight mb-6" style={{ color: 'var(--text-primary)' }}>
-                Three Decades of<br/>
-                <em className="italic font-light" style={{ color: 'var(--accent-text)' }}>Craftsmanship</em>
+                From Sketch to<br/>
+                <em className="italic font-light" style={{ color: 'var(--accent-text)' }}>Signature Piece</em>
               </h2>
               <p className="text-lg leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
-                Since 1994, Craftura has been synonymous with quality furniture manufacturing. Our master craftsmen combine traditional Indian joinery techniques with contemporary design.
-              </p>
-              <p className="leading-relaxed mb-8" style={{ color: 'var(--text-muted)' }}>
-                Whether you're furnishing a single room or outfitting an entire hotel chain, our manufacturing capabilities scale to meet your needs. Every joint is mortise and tenon, every finish hand-applied.
+                Every project follows a transparent timeline so clients know exactly what happens, when it happens, and who owns each stage.
               </p>
               <div className="grid grid-cols-2 gap-6 mb-10">
                 {[
-                  { icon:'⚙️', title:'Bulk Manufacturing', desc:'Hotels, offices & institutions' },
-                  { icon:'✂️', title:'Custom Design',      desc:'Made-to-measure furniture' },
-                  { icon:'🌳', title:'Premium Materials',  desc:'Teak, oak, sheesham & more' },
-                  { icon:'🚚', title:'Pan-India Delivery', desc:'Delivered to your door' },
+                  { icon:'01', title:'Brief & Moodboard',   desc:'Alignment on space and style direction' },
+                  { icon:'02', title:'Material Selection',  desc:'Wood, finish and touchpoint approvals' },
+                  { icon:'03', title:'Workshop Build',      desc:'Joinery, assembly and detailing in-house' },
+                  { icon:'04', title:'Delivery & Setup',    desc:'Final placement and project handover' },
                 ].map(f => (
                   <div key={f.title} className="flex gap-3">
-                    <span className="text-xl mt-0.5">{f.icon}</span>
+                    <span className="text-xl mt-0.5 font-display" style={{ color: 'var(--accent-text)' }}>{f.icon}</span>
                     <div>
                       <div className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{f.title}</div>
                       <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{f.desc}</div>
@@ -298,7 +312,7 @@ export default async function HomePage() {
                 ))}
               </div>
               <Link href="/about" className="btn-wood">
-                Our Story
+                Explore Our Process
                 <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
                   <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -308,30 +322,30 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── B2B BANNER ── */}
+      {/* ── PROJECT PLANNING HUB ── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl px-8 sm:px-14 py-14 sm:py-16"
+          <div className="relative overflow-hidden rounded-3xl px-8 sm:px-14 py-14 sm:py-16 hover-depth"
             style={{ background: 'var(--accent)' }}>
             <div className="absolute inset-0 opacity-10">
               {Array(5).fill(0).map((_,i) => (
-                <div key={i} className="absolute border border-white rounded-full"
+                <div key={i} className="absolute border border-white rounded-full drift-soft"
                   style={{ width:(i+1)*200, height:(i+1)*200, top:'50%', left:'60%', transform:'translate(-50%,-50%)' }}/>
               ))}
             </div>
             <div className="relative grid lg:grid-cols-2 gap-10 items-center">
               <div>
-                <p className="text-xs tracking-[0.3em] uppercase font-medium mb-4 text-white opacity-80">For Businesses</p>
+                <p className="text-xs tracking-[0.3em] uppercase font-medium mb-4 text-white opacity-80">Project Planning Hub</p>
                 <h2 className="font-display text-4xl sm:text-5xl text-white font-semibold mb-5 leading-tight">
-                  Bulk Orders &<br/>Custom Projects
+                  Plan Smarter,<br/>Build Faster
                 </h2>
                 <p className="text-lg leading-relaxed mb-8" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  Supplying furniture to hotels, resorts, corporate offices and educational institutions across India.
+                  Share your layout, quantity and deadlines to receive a practical project roadmap for home or business spaces.
                 </p>
                 <Link href="/bulk-orders"
                   className="inline-flex items-center gap-2 font-semibold px-7 py-3.5 rounded-lg transition-colors"
                   style={{ background: 'var(--bg-surface)', color: 'var(--accent)' }}>
-                  Request Bulk Quote
+                  Request Project Plan
                   <svg width="16" height="16" fill="none" viewBox="0 0 16 16">
                     <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -339,10 +353,10 @@ export default async function HomePage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { value:'50+',     label:'MOQ Available',   sub:'Minimum order quantity' },
-                  { value:'100%',    label:'Customizable',    sub:'Size, finish & material' },
-                  { value:'60 days', label:'Lead Time',       sub:'For bulk orders' },
-                  { value:'5★',      label:'Quality Assured', sub:'ISO manufacturing' },
+                  { value:'3D',      label:'Layout Guidance',  sub:'Visual planning before production' },
+                  { value:'100%',    label:'Tailored Specs',   sub:'Dimensions, finish and utility' },
+                  { value:'6-step',  label:'Execution Flow',   sub:'Milestones with clear ownership' },
+                  { value:'Pan-India', label:'Delivery Network', sub:'Reliable logistics and setup' },
                 ].map(s => (
                   <div key={s.label} className="rounded-xl p-5"
                     style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
@@ -357,46 +371,67 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS — from database ── */}
-      {testimonials.length > 0 && (
-        <section className="pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs tracking-[0.3em] uppercase font-medium mb-3" style={{ color: 'var(--accent-text)' }}>
-              Testimonials
+      {/* ── SOCIAL PROOF + STORY ── */}
+      <section className="pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="rounded-3xl p-8 sm:p-10 border card-hover"
+            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-base)' }}>
+            <p className="text-xs tracking-[0.3em] uppercase font-medium mb-4" style={{ color: 'var(--accent-text)' }}>
+              Client Voice
             </p>
-            <h2 className="font-display text-4xl sm:text-5xl" style={{ color: 'var(--text-primary)' }}>
-              What Our Clients Say
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map(t => (
-              <div key={t.id} className="rounded-2xl p-7 border card-hover"
-                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-base)' }}>
+            {highlightedTestimonial ? (
+              <>
                 <div className="flex gap-1 mb-5">
-                  {Array(t.rating).fill(0).map((_,j) => (
+                  {Array(highlightedTestimonial.rating).fill(0).map((_,j) => (
                     <svg key={j} width="16" height="16" viewBox="0 0 16 16" fill="var(--accent)">
                       <path d="M8 1l1.8 3.6L14 5.3l-3 2.9.7 4.1L8 10.4l-3.7 1.9.7-4.1-3-2.9 4.2-.7z"/>
                     </svg>
                   ))}
                 </div>
-                <p className="text-sm leading-relaxed mb-6 italic" style={{ color: 'var(--text-secondary)' }}>
-                  &ldquo;{t.quote}&rdquo;
+                <p className="font-display text-2xl sm:text-3xl italic leading-tight mb-6" style={{ color: 'var(--text-primary)' }}>
+                  &ldquo;{highlightedTestimonial.quote}&rdquo;
                 </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold"
-                    style={{ background: 'var(--accent-soft)', color: 'var(--accent-text)' }}>
-                    {t.name[0]}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{t.name}</div>
-                    <div className="text-xs" style={{ color: 'var(--text-faint)' }}>{t.role}{t.location ? ` · ${t.location}` : ''}</div>
-                  </div>
+                <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  {highlightedTestimonial.name} · {highlightedTestimonial.role}
+                  {highlightedTestimonial.location ? ` · ${highlightedTestimonial.location}` : ''}
                 </div>
-              </div>
-            ))}
+              </>
+            ) : (
+              <p style={{ color: 'var(--text-muted)' }}>
+                Trusted by homeowners and businesses across India for enduring craft and practical design.
+              </p>
+            )}
           </div>
-        </section>
-      )}
+          <div className="rounded-3xl p-8 sm:p-10 border card-hover"
+            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-base)' }}>
+            <p className="text-xs tracking-[0.3em] uppercase font-medium mb-4" style={{ color: 'var(--accent-text)' }}>
+              Studio Story
+            </p>
+            {latestStory ? (
+              <>
+                <h3 className="font-display text-2xl sm:text-3xl leading-tight mb-4" style={{ color: 'var(--text-primary)' }}>
+                  {latestStory.title}
+                </h3>
+                <p className="leading-relaxed mb-7" style={{ color: 'var(--text-secondary)' }}>
+                  {latestStory.excerpt}
+                </p>
+                <div className="flex items-center gap-3 mb-8 text-xs" style={{ color: 'var(--text-faint)' }}>
+                  <span>{latestStory.category}</span>
+                  <span>•</span>
+                  <span>{latestStory.readTime} min read</span>
+                </div>
+                <Link href={`/blog/${latestStory.slug}`} className="btn-outline">
+                  Read Story
+                </Link>
+              </>
+            ) : (
+              <p style={{ color: 'var(--text-muted)' }}>
+                Follow our design notes for practical furniture tips, material guidance and project inspiration.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* ── BLOG PREVIEW ── */}
       {blogPosts.length > 0 && (
@@ -458,13 +493,13 @@ export default async function HomePage() {
         <div className="rounded-3xl p-10 sm:p-16 text-center"
           style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-base)' }}>
           <p className="text-xs tracking-[0.3em] uppercase font-medium mb-4" style={{ color: 'var(--accent-text)' }}>
-            Ready to Begin?
+            Ready to Build?
           </p>
           <h2 className="font-display text-4xl sm:text-5xl mb-5" style={{ color: 'var(--text-primary)' }}>
-            Let's Create Something Beautiful
+            Shape Your Space With Craftura
           </h2>
           <p className="text-lg max-w-xl mx-auto mb-10" style={{ color: 'var(--text-muted)' }}>
-            From a single statement piece to furnishing an entire building — we'd love to hear about your project.
+            Bring us your room idea, project brief or quantity requirement and we will turn it into a clear, buildable plan.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/contact" className="btn-wood">Get in Touch</Link>

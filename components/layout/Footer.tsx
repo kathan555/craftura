@@ -8,6 +8,42 @@ interface NavSettings {
 }
 
 export default function Footer({ navSettings }: { navSettings: NavSettings }) {
+  const socialLinks = [
+    {
+      name: 'Facebook',
+      href: '#',
+      icon: (
+        <path
+          fill="currentColor"
+          d="M14 8a6 6 0 10-6.94 5.93v-4.2H5.53V8h1.53V6.69c0-1.5.9-2.34 2.27-2.34.66 0 1.35.12 1.35.12v1.49h-.76c-.75 0-.99.47-.99.95V8h1.68l-.27 1.73H8.93v4.2A6 6 0 0014 8z"
+        />
+      ),
+    },
+    {
+      name: 'Instagram',
+      href: '#',
+      icon: (
+        <>
+          <rect x="2.1" y="2.1" width="11.8" height="11.8" rx="3.2" stroke="currentColor" strokeWidth="1.2" />
+          <circle cx="8" cy="8" r="2.7" stroke="currentColor" strokeWidth="1.2" />
+          <circle cx="11.3" cy="4.8" r="0.8" fill="currentColor" />
+        </>
+      ),
+    },
+    {
+      name: 'LinkedIn',
+      href: '#',
+      icon: (
+        <>
+          <rect x="2.2" y="2.2" width="11.6" height="11.6" rx="2.1" stroke="currentColor" strokeWidth="1.2" />
+          <rect x="4.9" y="6.7" width="1.4" height="4.7" fill="currentColor" />
+          <circle cx="5.6" cy="5" r="0.85" fill="currentColor" />
+          <path fill="currentColor" d="M7.5 11.4V6.7h1.34v.67h.02c.19-.35.64-.77 1.38-.77 1.13 0 1.76.69 1.76 2.03v2.7h-1.43V8.87c0-.58-.2-.97-.76-.97-.41 0-.66.28-.77.54-.04.1-.05.24-.05.39v2.57H7.5z" />
+        </>
+      ),
+    },
+  ]
+
   return (
     <footer style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border-subtle)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,13 +71,13 @@ export default function Footer({ navSettings }: { navSettings: NavSettings }) {
               Three decades of crafting premium furniture for homes, hotels and institutions across India.
             </p>
             <div className="flex gap-3">
-              {['facebook', 'instagram', 'linkedin'].map(s => (
-                <a key={s} href="#"
+              {socialLinks.map((social) => (
+                <a key={social.name} href={social.href}
                   className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
                   style={{ background: 'var(--bg-muted)', color: 'var(--text-muted)' }}>
-                  <span className="sr-only">{s}</span>
-                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-                    <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.2"/>
+                  <span className="sr-only">{social.name}</span>
+                  <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    {social.icon}
                   </svg>
                 </a>
               ))}
